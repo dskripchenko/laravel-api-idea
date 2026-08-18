@@ -1,0 +1,24 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.javascript.debugger.backend" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.javascript.debugger.backend" ext="jar" conf="default" url="plugins/javascript-debugger/lib/modules"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.css.common.psi" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.css.psi" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.css" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.json.backend" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.kernel.backend" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.debugger.impl.shared" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.scriptDebugger.ui" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.coverage" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.javascript.wip.protocol" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.javascript.wip.backend" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.javascript.debugger.ui" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.javascript.debugger.common" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.javascript.debugger.backend.rpc" rev="PS-261.22158.283"/>
+  </dependencies>
+</ivy-module>

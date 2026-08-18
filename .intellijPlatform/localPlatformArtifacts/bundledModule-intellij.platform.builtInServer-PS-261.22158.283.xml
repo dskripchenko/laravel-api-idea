@@ -1,0 +1,16 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.platform.builtInServer" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.platform.builtInServer" ext="jar" conf="default" url="lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.libraries.netty.codec.http" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.analysis" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.core" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.ide.core" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.util.ex" rev="PS-261.22158.283"/>
+  </dependencies>
+</ivy-module>

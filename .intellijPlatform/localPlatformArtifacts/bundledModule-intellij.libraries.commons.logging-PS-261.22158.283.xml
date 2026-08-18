@@ -1,0 +1,10 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.libraries.commons.logging" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.libraries.commons.logging" ext="jar" conf="default" url="lib"/>
+  </publications>
+  <dependencies/>
+</ivy-module>

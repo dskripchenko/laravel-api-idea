@@ -1,0 +1,37 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.platform.debugger.impl" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.platform.debugger.impl" ext="jar" conf="default" url="lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.libraries.fastutil" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.libraries.jackson" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.libraries.jackson.databind" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.libraries.kotlinx.coroutines.core" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.libraries.kotlinx.serialization.core" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.libraries.kotlinx.serialization.json" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.libraries.miglayout.swing" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.libraries.stream" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.analysis" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.analysis.impl" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.core" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.core.impl" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.core.ui" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.debugger" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.debugger.impl.rpc" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.debugger.impl.shared" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.debugger.impl.ui" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.diff" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.ide.impl" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.kernel" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.lang" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.lang.core" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.lang.impl" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.projectModel" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.rpc.topics" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.util.ex" rev="PS-261.22158.283"/>
+  </dependencies>
+</ivy-module>

@@ -1,0 +1,25 @@
+<idea-plugin>
+    <id>dev.dskripchenko.laravel-api</id>
+    <name>Laravel API</name>
+    <vendor email="denskrp90@gmail.com" url="https://github.com/dskripchenko/laravel-api">Denis Skripchenko</vendor>
+
+    <description><![CDATA[
+        IDE support for <a href="https://github.com/dskripchenko/laravel-api">dskripchenko/laravel-api</a>:
+        the docblock markup its OpenAPI generator reads, and the route map its
+        <code>getMethods()</code> declares.
+        <br/><br/>
+        The package fails quietly by design — an action pointing at a renamed
+        method answers 404, a <code>@response</code> naming a template that does
+        not exist becomes a dangling <code>$ref</code>. This plugin makes both
+        visible while typing.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.jetbrains.php</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <annotator
+            language="PHP"
+            implementationClass="dev.dskripchenko.laravelapi.markup.TagAnnotator"/>
+    </extensions>
+</idea-plugin>

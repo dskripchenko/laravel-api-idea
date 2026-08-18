@@ -1,0 +1,13 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.intellij.diagram" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="uml-support" ext="jar" conf="default" url="plugins/uml/lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.navbar.frontend" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.vcs" rev="PS-261.22158.283"/>
+  </dependencies>
+</ivy-module>

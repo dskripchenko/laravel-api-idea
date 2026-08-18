@@ -1,0 +1,13 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.platform.vcs" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.platform.vcs" ext="jar" conf="default" url="lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.vcs.core" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.vcs.shared" rev="PS-261.22158.283"/>
+  </dependencies>
+</ivy-module>

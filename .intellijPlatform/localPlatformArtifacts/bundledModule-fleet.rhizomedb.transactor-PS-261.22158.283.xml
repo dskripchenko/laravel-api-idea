@@ -1,0 +1,19 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="fleet.rhizomedb.transactor" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="fleet.rhizomedb.transactor" ext="jar" conf="default" url="lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="fleet.bifurcan" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="fleet.fastutil" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="fleet.multiplatform.shims" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="fleet.reporting.api" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="fleet.reporting.shared" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="fleet.rhizomedb" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="fleet.rpc" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="fleet.util.core" rev="PS-261.22158.283"/>
+  </dependencies>
+</ivy-module>

@@ -1,0 +1,12 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.css.psi" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.css.psi" ext="jar" conf="default" url="plugins/css-plugin/lib/modules"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.css.common" rev="PS-261.22158.283"/>
+  </dependencies>
+</ivy-module>

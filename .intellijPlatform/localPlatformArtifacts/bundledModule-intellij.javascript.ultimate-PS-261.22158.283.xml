@@ -1,0 +1,10 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.javascript.ultimate" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.javascript.ultimate" ext="jar" conf="default" url="plugins/javascript-plugin/lib/modules"/>
+  </publications>
+  <dependencies/>
+</ivy-module>

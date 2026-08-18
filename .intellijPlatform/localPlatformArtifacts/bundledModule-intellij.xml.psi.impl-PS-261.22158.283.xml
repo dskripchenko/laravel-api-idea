@@ -1,0 +1,15 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.xml.psi.impl" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.xml.psi.impl" ext="jar" conf="default" url="lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.xml.psi" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.xml.parser" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.regexp" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.xml.syntax" rev="PS-261.22158.283"/>
+  </dependencies>
+</ivy-module>

@@ -1,0 +1,27 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.jetbrains.php" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="php-frontback" ext="jar" conf="default" url="plugins/php-impl/lib"/>
+    <artifact name="completion-ranking-php" ext="jar" conf="default" url="plugins/php-impl/lib"/>
+    <artifact name="php" ext="jar" conf="default" url="plugins/php-impl/lib"/>
+    <artifact name="intellij.php.mcp" ext="jar" conf="default" url="plugins/php-impl/lib/modules"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledPlugin" name="com.intellij.modules.json" rev="PS-261.22158.283"/>
+    <dependency org="bundledPlugin" name="com.intellij.diagram" rev="PS-261.22158.283"/>
+    <dependency org="bundledPlugin" name="com.jetbrains.plugins.webDeployment" rev="PS-261.22158.283"/>
+    <dependency org="bundledPlugin" name="com.jetbrains.restClient" rev="PS-261.22158.283"/>
+    <dependency org="bundledPlugin" name="com.intellij.copyright" rev="PS-261.22158.283"/>
+    <dependency org="bundledPlugin" name="com.jetbrains.performancePlugin" rev="PS-261.22158.283"/>
+    <dependency org="bundledPlugin" name="com.intellij.dev" rev="PS-261.22158.283"/>
+    <dependency org="bundledPlugin" name="org.jetbrains.plugins.terminal" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.structuralSearch" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.debugger" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.debugger.impl" rev="PS-261.22158.283"/>
+    <dependency org="bundledPlugin" name="JavaScript" rev="PS-261.22158.283"/>
+    <dependency org="bundledPlugin" name="com.intellij.completion.ml.ranking" rev="PS-261.22158.283"/>
+  </dependencies>
+</ivy-module>

@@ -1,0 +1,12 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.platform.projectModel" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="intellij.platform.projectModel" ext="jar" conf="default" url="lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.core" rev="PS-261.22158.283"/>
+  </dependencies>
+</ivy-module>

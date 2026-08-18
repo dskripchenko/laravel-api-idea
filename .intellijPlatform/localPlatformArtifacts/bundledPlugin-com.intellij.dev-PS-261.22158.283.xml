@@ -1,0 +1,17 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.intellij.dev" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="dev" ext="jar" conf="default" url="plugins/dev/lib"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.backend" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.dev.psiViewer" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.dev.codeInsight" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.debugger" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.debugger.impl" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.json.backend" rev="PS-261.22158.283"/>
+  </dependencies>
+</ivy-module>

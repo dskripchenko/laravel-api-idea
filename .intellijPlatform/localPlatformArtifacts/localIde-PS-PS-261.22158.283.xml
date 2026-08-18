@@ -1,0 +1,10 @@
+<ivy-module version="2.0">
+  <info organisation="localIde" module="PS" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="Applications/PhpStorm.app/Contents" ext="directory" conf="default"/>
+  </publications>
+  <dependencies/>
+</ivy-module>

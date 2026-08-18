@@ -1,0 +1,13 @@
+<ivy-module version="2.0">
+  <info organisation="bundledModule" module="intellij.fullLine.core.completion" revision="PS-261.22158.283"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications/>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.inline.completion" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.platform.backend" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.ml.diagnostics" rev="PS-261.22158.283"/>
+    <dependency org="bundledModule" name="intellij.fullLine.core.utils.common" rev="PS-261.22158.283"/>
+  </dependencies>
+</ivy-module>
