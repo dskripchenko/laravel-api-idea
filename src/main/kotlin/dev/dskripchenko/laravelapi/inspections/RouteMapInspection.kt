@@ -61,6 +61,7 @@ class RouteMapInspection : LocalInspectionTool() {
                         "${controllers.first().name} has no method '${entry.methodName}()' — " +
                             "this action answers 404, the same 404 as a mistyped URL",
                         ProblemHighlightType.GENERIC_ERROR,
+                        CreateActionMethodFix(controllerFqn, entry.methodName, entry.actionKey),
                     )
 
                     return

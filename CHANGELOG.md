@@ -5,6 +5,24 @@ All notable changes to this plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0]
+
+### Added
+
+- **A quick fix that writes the controller method an action points at**, on the
+  error that already reports the map leading nowhere. Alt+Enter on the action
+  key creates the method, with the name taken from the map rather than typed a
+  second time — a second, slightly different spelling produces exactly the 404
+  the fix exists to end.
+
+  The docblock keeps what the neighbours agree on and invents nothing else.
+  `@security` is copied, because authentication belongs to the controller rather
+  than to one action, and only when every sibling declares the same scheme;
+  where they differ, the choice is a decision and the line is left out.
+  `@response` is never borrowed: a template names the body of *that* answer, and
+  copying one would document a response this method does not return — while
+  looking entirely deliberate.
+
 ## [0.4.0]
 
 ### Added
