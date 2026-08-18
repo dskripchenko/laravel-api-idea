@@ -43,10 +43,16 @@ Early. What works today:
   nonsense". A method that exists but is not public, or is static, is reported
   the same way: `app()->call()` cannot reach it either.
 
-Planned, in order: `@security` schemes checked against
-`getOpenApiSecurityDefinitions()`, completion for types, template names and
-status codes, and an intention that writes the missing template into
-`getOpenApiTemplates()`.
+- **`@security` checked** against `getOpenApiSecurityDefinitions()`, with
+  Ctrl+Click to the declaration. Silent while a project declares no schemes at
+  all: that application has evidently not taken the feature up, and painting
+  every tag red would teach people to look past the plugin rather than at it.
+- **Completion** of types, formats, template names, security schemes and status
+  codes — and, deliberately, of nothing at all once the caret has moved past the
+  variable into the description.
+
+Planned: an intention that writes a missing template into
+`getOpenApiTemplates()`, and publication to the JetBrains Marketplace.
 
 One implementation note worth recording: navigation is a `GotoDeclarationHandler`
 rather than a `PsiReference`. `PhpDocTagImpl` declares itself a

@@ -41,6 +41,11 @@ class TagAnnotatorTest : BasePlatformTestCase() {
                         'UserResponse' => ['id' => 'integer!'],
                     ];
                 }
+
+                public static function getOpenApiSecurityDefinitions(): array
+                {
+                    return ['BearerAuth' => ['type' => 'apiKey']];
+                }
             }
             """.trimIndent()
         )
@@ -104,6 +109,28 @@ class TagAnnotatorTest : BasePlatformTestCase() {
         check(
             """     * @response 404 {<error descr="Template 'MissingTemplate' is not declared in getOpenApiTemplates() — the generated spec will carry a ${'$'}ref pointing at nothing.">MissingTemplate</error>}"""
         )
+    }
+
+    fun `test a security scheme nobody declared is an error`() {
+        enableLaravelApi()
+        addApiClass()
+        check(
+            """     * @security <error descr="Security scheme 'AdminSession' is not declared in getOpenApiSecurityDefinitions() — the spec will reference a scheme it never defines.">AdminSession</error>"""
+        )
+    }
+
+    fun `test a declared security scheme is left alone`() {
+        enableLaravelApi()
+        addApiClass()
+        check("""     * @security BearerAuth""")
+    }
+
+    fun `test security is not policed while the project declares no schemes`() {
+        enableLaravelApi()
+        // No Api class, so no definitions anywhere: the feature is evidently
+        // not in use, and painting every @security red would be a wall of noise
+        // rather than a finding.
+        check("""     * @security Whatever""")
     }
 
     fun `test nothing fires without the package`() {

@@ -10,6 +10,7 @@ import com.intellij.psi.PsiElement
 import com.jetbrains.php.lang.documentation.phpdoc.psi.tags.PhpDocTag
 import dev.dskripchenko.laravelapi.LaravelApiProject
 import dev.dskripchenko.laravelapi.markup.DocTagGrammar.Parsed
+import dev.dskripchenko.laravelapi.navigation.SecurityLookup
 import dev.dskripchenko.laravelapi.navigation.TemplateLookup
 
 /**
@@ -98,7 +99,10 @@ class TagAnnotator : Annotator {
                 }
             }
 
-            is Parsed.Security -> paint(holder, bodyStart, parsed.schemeRange, REFERENCE)
+            is Parsed.Security -> {
+                paint(holder, bodyStart, parsed.schemeRange, REFERENCE)
+                reportUnknownScheme(holder, element, bodyStart, parsed.scheme, parsed.schemeRange)
+            }
 
             is Parsed.DefaultOrExample -> paint(holder, bodyStart, parsed.variableRange, VARIABLE)
 
@@ -137,6 +141,32 @@ class TagAnnotator : Annotator {
             HighlightSeverity.ERROR,
             "Template '$name' is not declared in getOpenApiTemplates() — " +
                 "the generated spec will carry a \$ref pointing at nothing."
+        ).range(range(base, at)).create()
+    }
+
+    /**
+     * A scheme nothing declares.
+     *
+     * Silent while the project declares no schemes at all — see
+     * [SecurityLookup.isInUse]. Once one exists, an unrecognised name means the
+     * spec will ask for authentication that `components.securitySchemes` never
+     * describes.
+     */
+    private fun reportUnknownScheme(
+        holder: AnnotationHolder,
+        element: PsiElement,
+        base: Int,
+        name: String,
+        at: IntRange,
+    ) {
+        if (name.isEmpty()) return
+        if (!SecurityLookup.isInUse(element.project)) return
+        if (name in SecurityLookup.allNames(element.project)) return
+
+        holder.newAnnotation(
+            HighlightSeverity.ERROR,
+            "Security scheme '$name' is not declared in getOpenApiSecurityDefinitions() — " +
+                "the spec will reference a scheme it never defines."
         ).range(range(base, at)).create()
     }
 

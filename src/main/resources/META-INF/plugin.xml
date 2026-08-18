@@ -29,6 +29,10 @@
         <codeInsight.gotoDeclarationHandler
             implementation="dev.dskripchenko.laravelapi.navigation.DocGotoDeclarationHandler"/>
 
+        <completion.contributor
+            language="PHP"
+            implementationClass="dev.dskripchenko.laravelapi.markup.TagCompletionContributor"/>
+
         <codeInsight.lineMarkerProvider
             language="PHP"
             implementationClass="dev.dskripchenko.laravelapi.routes.RouteLineMarkerProvider"/>

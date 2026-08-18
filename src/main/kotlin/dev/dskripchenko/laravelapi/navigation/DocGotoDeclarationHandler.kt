@@ -63,6 +63,15 @@ class DocGotoDeclarationHandler : GotoDeclarationHandler {
             is Parsed.Callable ->
                 if (inBody in parsed.methodRange) methodTarget(tag, parsed.method) else null
 
+            is Parsed.Security ->
+                if (inBody in parsed.schemeRange) {
+                    SecurityLookup.findDeclarations(element.project, parsed.scheme)
+                        .ifEmpty { null }
+                        ?.toTypedArray()
+                } else {
+                    null
+                }
+
             else -> null
         }
     }
