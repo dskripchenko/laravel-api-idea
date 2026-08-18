@@ -5,6 +5,7 @@ import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.EnvironmentUtil
 import java.io.File
 
 /**
@@ -48,7 +49,10 @@ object ApiLintRunner {
             ?: return Result.Unavailable("No artisan in ${project.basePath ?: "the project"} — api:lint is a command of the application.")
 
         val php = phpExecutable()
-            ?: return Result.Unavailable("No `php` on PATH. Configure one, or run `php artisan api:lint` yourself.")
+            ?: return Result.Unavailable(
+                "No `php` found. Looked at the login shell's PATH and the usual places — " +
+                    "run `php artisan api:lint` in a terminal to see what your shell uses."
+            )
 
         val workingDirectory = artisan.parent?.path
             ?: return Result.Unavailable("The project has no directory to run in.")
@@ -91,17 +95,44 @@ object ApiLintRunner {
         project.guessProjectDir()?.findChild("artisan")?.takeIf { !it.isDirectory }
 
     /**
-     * `php` from PATH.
+     * Where `php` is.
      *
-     * Not PhpStorm's configured interpreter, and that is a knowing compromise:
-     * reading it means impl-level API of the PHP plugin, while PATH is where a
-     * developer's `php artisan` already runs. If the two ever disagree, the
-     * command's own output says which one answered.
+     * `System.getenv("PATH")` is the obvious answer and the wrong one on macOS:
+     * an application started from Finder inherits the launcher's environment,
+     * not the shell's, so a perfectly working `php` — ServBay's, Homebrew's,
+     * anything under a version manager — is invisible to it. The plugin said
+     * "No `php` on PATH" to a developer whose terminal runs `php artisan` all
+     * day.
+     *
+     * `EnvironmentUtil` exists in the platform precisely for this: it reads the
+     * login shell's environment once and caches it. The plain environment is
+     * kept as a fallback for the case where that fails, and a few usual
+     * locations after it, so that a missing PATH is not the end of the road.
      */
-    private fun phpExecutable(): String? =
-        System.getenv("PATH")
-            ?.split(File.pathSeparator)
-            ?.map { File(it, "php") }
-            ?.firstOrNull { it.canExecute() }
+    private fun phpExecutable(): String? {
+        val paths = buildList {
+            EnvironmentUtil.getValue("PATH")?.let(::add)
+            System.getenv("PATH")?.let(::add)
+        }
+            .flatMap { it.split(File.pathSeparator) }
+            .plus(FALLBACK_DIRECTORIES)
+
+        return paths
+            .asSequence()
+            .filter { it.isNotBlank() }
+            .map { File(it, "php") }
+            .firstOrNull { it.canExecute() }
             ?.path
+    }
+
+    /**
+     * The places a Mac keeps PHP when the environment says nothing. Not a
+     * substitute for a configured interpreter — a hint of last resort.
+     */
+    private val FALLBACK_DIRECTORIES = listOf(
+        "/opt/homebrew/bin",
+        "/usr/local/bin",
+        "/usr/bin",
+        "/Applications/ServBay/script/alias",
+    )
 }

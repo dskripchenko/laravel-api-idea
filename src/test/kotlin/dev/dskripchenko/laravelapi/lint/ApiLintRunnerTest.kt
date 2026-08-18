@@ -25,6 +25,26 @@ class ApiLintRunnerTest : BasePlatformTestCase() {
         assertTrue("the reason is not explanatory: $reason", reason.contains("artisan"))
     }
 
+    fun `test php is looked for beyond the launcher's environment`() {
+        myFixture.addFileToProject("artisan", "#!/usr/bin/env php")
+
+        val result = ApiLintRunner.run(project)
+
+        // On macOS an IDE started from Finder has no shell PATH, and the first
+        // version of this refused to run for a developer whose terminal runs
+        // `php artisan` daily. Any answer is acceptable here except "no php" on
+        // a machine that plainly has one.
+        val phpExists = listOf("/opt/homebrew/bin/php", "/usr/local/bin/php", "/usr/bin/php")
+            .any { java.io.File(it).canExecute() }
+
+        if (phpExists && result is ApiLintRunner.Result.Unavailable) {
+            assertFalse(
+                "php exists on this machine and was not found: ${result.reason}",
+                result.reason.contains("No `php`"),
+            )
+        }
+    }
+
     fun `test availability is a file question, not an index one`() {
         // Asked while a menu is being built, when the index may not be ready —
         // the mistake that made the tool window disappear.

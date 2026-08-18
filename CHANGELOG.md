@@ -22,9 +22,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the route map turns into a method, so a double click opens the docblock the
   finding is about.
 
-  It needs `artisan` and a `php` on PATH. Where they are missing the reason is
-  said in words — availability is a file question, deliberately, so that a menu
-  being built does not depend on the index being ready.
+  It needs `artisan` and a `php`. Where they are missing the reason is said in
+  words — availability is a file question, deliberately, so that a menu being
+  built does not depend on the index being ready.
+
+  `php` is looked for in the login shell's environment rather than the
+  launcher's. On macOS an IDE started from Finder inherits neither the shell's
+  PATH nor its version manager, so the first version of this told a developer
+  whose terminal runs `php artisan` all day that there was no PHP on the
+  machine.
 
 ## [0.3.0]
 
