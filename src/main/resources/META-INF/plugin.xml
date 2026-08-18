@@ -100,7 +100,7 @@
             language="PHP"
             implementationClass="dev.dskripchenko.laravelapi.routes.RouteMapAnnotator"/>
 
-        <codeInsight.gotoDeclarationHandler
+        <gotoDeclarationHandler
             implementation="dev.dskripchenko.laravelapi.navigation.DocGotoDeclarationHandler"/>
 
         <completion.contributor

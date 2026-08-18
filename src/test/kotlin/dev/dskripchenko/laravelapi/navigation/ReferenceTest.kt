@@ -1,5 +1,6 @@
 package dev.dskripchenko.laravelapi.navigation
 
+import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.jetbrains.php.lang.psi.elements.Method
@@ -57,20 +58,17 @@ class ReferenceTest : BasePlatformTestCase() {
     }
 
     /**
-     * Where Ctrl+Click would land, or null when nowhere.
+     * Where Ctrl+Click actually lands.
      *
-     * The handler is asked directly rather than through
-     * `findReferenceAt`: PhpDocTagImpl overrides getReferences() and drops
-     * contributed ones, which is why navigation is a goto handler here at all.
+     * Through the platform's own action rather than by calling the handler
+     * directly. The direct call is what the first version of this test did, and
+     * it passed while navigation was dead in the IDE: the handler was
+     * registered under `codeInsight.gotoDeclarationHandler`, an extension point
+     * that does not exist, so nothing ever invoked it. A test that skips the
+     * dispatch cannot see that.
      */
-    private fun resolveAtCaret(): PsiElement? {
-        val offset = myFixture.caretOffset
-        val leaf = myFixture.file.findElementAt(offset)
-
-        return DocGotoDeclarationHandler()
-            .getGotoDeclarationTargets(leaf, offset, myFixture.editor)
-            ?.firstOrNull()
-    }
+    private fun resolveAtCaret(): PsiElement? =
+        GotoDeclarationAction.findTargetElement(project, myFixture.editor, myFixture.caretOffset)
 
     private fun configureController(docblock: String) {
         myFixture.configureByText(
