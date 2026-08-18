@@ -1,0 +1,10 @@
+<html><body>
+<p>Reports an <code>@input</code>, <code>@output</code>, <code>@header</code>,
+<code>@response</code>, <code>@default</code> or <code>@example</code> whose body
+the OpenAPI generator cannot read.</p>
+<p>Such a line is not an error at runtime and produces no warning: the generator
+drops it, and the field simply never appears in the specification. A missing
+<code>$</code> is enough — <code>@input string name Description</code> looks
+entirely reasonable and documents nothing.</p>
+<p>Also reports a status code outside 100–599.</p>
+</body></html>

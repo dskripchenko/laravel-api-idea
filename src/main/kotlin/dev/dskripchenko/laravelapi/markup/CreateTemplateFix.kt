@@ -1,7 +1,9 @@
 package dev.dskripchenko.laravelapi.markup
 
-import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInspection.LocalQuickFix
+import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.psi.PsiDocumentManager
@@ -26,24 +28,20 @@ import com.jetbrains.php.lang.psi.elements.PhpReturn
  * The declaration it writes is empty on purpose. What the response contains is
  * a decision; where it is declared and how it is spelled is not.
  */
-class CreateTemplateFix(private val templateName: String) : IntentionAction {
+class CreateTemplateFix(private val templateName: String) : LocalQuickFix {
 
     private companion object {
         const val BASE_API = "\\Dskripchenko\\LaravelApi\\Components\\BaseApi"
         const val METHOD = "getOpenApiTemplates"
     }
 
-    override fun getText(): String = "Declare template '$templateName' in $METHOD()"
+    override fun getName(): String = "Declare template '$templateName' in $METHOD()"
 
-    override fun getFamilyName(): String = "Laravel API"
+    override fun getFamilyName(): String = "Declare a missing response template"
 
-    override fun startInWriteAction(): Boolean = true
-
-    override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean =
-        apiClasses(project).isNotEmpty()
-
-    override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
+    override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
         val candidates = apiClasses(project)
+        val editor = FileEditorManager.getInstance(project).selectedTextEditor
 
         when (candidates.size) {
             0 -> return
@@ -67,7 +65,7 @@ class CreateTemplateFix(private val templateName: String) : IntentionAction {
                 val target = candidates.firstOrNull { it.fqn == chosen } ?: return@setItemChosenCallback
                 com.intellij.openapi.command.WriteCommandAction
                     .writeCommandAction(project, target.containingFile)
-                    .withName(text)
+                    .withName(name)
                     .run<RuntimeException> { declareIn(project, target) }
             }
             .createPopup()

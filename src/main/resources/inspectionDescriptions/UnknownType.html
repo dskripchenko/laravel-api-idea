@@ -1,0 +1,10 @@
+<html><body>
+<p>Reports a type outside the seven this markup knows: <code>string</code>,
+<code>file</code>, <code>number</code>, <code>integer</code>,
+<code>boolean</code>, <code>array</code>, <code>object</code>.</p>
+<p>Nothing breaks — and that is the point. The generator carries on and calls
+the field a <code>string</code>, so <code>object|null</code>, <code>any</code>
+and <code>datetime</code> all end up documented as text while the specification
+looks deliberate.</p>
+<p>Optionality is written as <code>?$variable</code>, not as a union.</p>
+</body></html>

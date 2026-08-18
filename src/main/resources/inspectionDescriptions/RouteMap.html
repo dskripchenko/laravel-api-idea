@@ -1,0 +1,10 @@
+<html><body>
+<p>Reports an action in <code>getMethods()</code> whose controller method does
+not exist, is not public, or is static — and a controller class that is not
+there at all.</p>
+<p>The route map ties a URL to a method by a pair of strings, and nothing in PHP
+checks the pair. Rename the method and the endpoint answers <b>404</b> — the
+same 404 as a mistyped URL, so the logs cannot tell "this endpoint is gone" from
+"someone asked for nonsense". The mistake survives review, deploy and the whole
+test suite, and arrives as a bug report.</p>
+</body></html>

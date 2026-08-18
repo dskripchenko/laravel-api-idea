@@ -96,10 +96,6 @@
             language="PHP"
             implementationClass="dev.dskripchenko.laravelapi.markup.TagAnnotator"/>
 
-        <annotator
-            language="PHP"
-            implementationClass="dev.dskripchenko.laravelapi.routes.RouteMapAnnotator"/>
-
         <gotoDeclarationHandler
             implementation="dev.dskripchenko.laravelapi.navigation.DocGotoDeclarationHandler"/>
 
@@ -110,5 +106,67 @@
         <codeInsight.lineMarkerProvider
             language="PHP"
             implementationClass="dev.dskripchenko.laravelapi.routes.RouteLineMarkerProvider"/>
+
+        <!--
+            Inspections rather than annotators: the platform then owns the
+            severity, the suppression and the on/off switch, and the plugin
+            needs no settings screen of its own.
+
+            shortName must match the file in inspectionDescriptions/, or the
+            entry shows up in the settings tree with no description at all.
+        -->
+        <localInspection
+            language="PHP"
+            shortName="MalformedTag"
+            displayName="Laravel API: markup the generator cannot read"
+            groupName="Laravel API"
+            enabledByDefault="true"
+            level="ERROR"
+            implementationClass="dev.dskripchenko.laravelapi.inspections.MalformedTagInspection"/>
+
+        <localInspection
+            language="PHP"
+            shortName="UnknownType"
+            displayName="Laravel API: unknown type"
+            groupName="Laravel API"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="dev.dskripchenko.laravelapi.inspections.UnknownTypeInspection"/>
+
+        <localInspection
+            language="PHP"
+            shortName="UnknownTemplate"
+            displayName="Laravel API: response template is not declared"
+            groupName="Laravel API"
+            enabledByDefault="true"
+            level="ERROR"
+            implementationClass="dev.dskripchenko.laravelapi.inspections.UnknownTemplateInspection"/>
+
+        <localInspection
+            language="PHP"
+            shortName="UnknownSecurityScheme"
+            displayName="Laravel API: security scheme is not declared"
+            groupName="Laravel API"
+            enabledByDefault="true"
+            level="ERROR"
+            implementationClass="dev.dskripchenko.laravelapi.inspections.UnknownSecuritySchemeInspection"/>
+
+        <localInspection
+            language="PHP"
+            shortName="MarkupConsistency"
+            displayName="Laravel API: the docblock disagrees with itself"
+            groupName="Laravel API"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="dev.dskripchenko.laravelapi.inspections.MarkupConsistencyInspection"/>
+
+        <localInspection
+            language="PHP"
+            shortName="RouteMap"
+            displayName="Laravel API: the route map points at nothing"
+            groupName="Laravel API"
+            enabledByDefault="true"
+            level="ERROR"
+            implementationClass="dev.dskripchenko.laravelapi.inspections.RouteMapInspection"/>
     </extensions>
 </idea-plugin>

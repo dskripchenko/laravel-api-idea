@@ -1,0 +1,13 @@
+<html><body>
+<p>Reports mistakes that only show up when the docblock is read as a whole: a
+field declared twice, a nested field whose parent is never declared, a parent
+declared as the wrong kind of container, two answers for one status code.</p>
+<p>In each case the generator keeps the last thing it saw and says nothing, so
+the specification quietly describes fewer fields — or fewer outcomes — than the
+docblock does.</p>
+<p>A <code>@default</code> for a variable with no <code>@input</code> is
+deliberately not reported here: middleware contributes inputs of its own, and
+telling a stray default from a legitimate one needs the route map and the
+middleware chain resolved. <code>php artisan api:lint</code> does that with the
+application booted.</p>
+</body></html>

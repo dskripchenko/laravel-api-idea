@@ -10,11 +10,13 @@ import com.intellij.psi.PsiElement
 import com.jetbrains.php.lang.documentation.phpdoc.psi.tags.PhpDocTag
 import dev.dskripchenko.laravelapi.LaravelApiProject
 import dev.dskripchenko.laravelapi.markup.DocTagGrammar.Parsed
-import dev.dskripchenko.laravelapi.navigation.SecurityLookup
-import dev.dskripchenko.laravelapi.navigation.TemplateLookup
 
 /**
- * Paints the markup inside the docblock and says so when it does not parse.
+ * Paints the markup inside the docblock.
+ *
+ * Colouring only. Every complaint this class used to make now lives in an
+ * inspection, where the severity can be lowered, the finding suppressed and the
+ * rule switched off — none of which an annotator can offer.
  *
  * PhpStorm treats an unknown tag as one grey blob of text, so `@input` reads
  * like prose — which is how a missing `$` or a stray word survives review. The
@@ -60,27 +62,14 @@ class TagAnnotator : Annotator {
                 paint(holder, bodyStart, parsed.typeRange, TYPE)
                 parsed.formatRange?.let { paint(holder, bodyStart, it, FORMAT) }
                 paint(holder, bodyStart, parsed.variableRange, VARIABLE)
-
-                if (parsed.type.isNotEmpty() && !DocTagGrammar.isKnownType(parsed.type)) {
-                    // Not an error: the generator carries on. It carries on by
-                    // calling the field a string, which is the part worth
-                    // knowing.
-                    holder.newAnnotation(
-                        HighlightSeverity.WARNING,
-                        "Unknown type '${parsed.type}' — the generator will call it 'string'. " +
-                            "Known types: ${DocTagGrammar.TYPES.joinToString(", ")}."
-                    ).range(range(bodyStart, parsed.typeRange)).create()
-                }
             }
 
             is Parsed.ModelRef -> {
                 paint(holder, bodyStart, parsed.modelRange, REFERENCE)
-                reportUnknownTemplate(holder, element, bodyStart, parsed.model, parsed.modelRange)
             }
 
             is Parsed.TemplateRef -> {
                 paint(holder, bodyStart, parsed.templateRange, REFERENCE)
-                reportUnknownTemplate(holder, element, bodyStart, parsed.template, parsed.templateRange)
             }
 
             is Parsed.Callable -> paint(holder, bodyStart, parsed.methodRange, REFERENCE)
@@ -89,91 +78,22 @@ class TagAnnotator : Annotator {
                 paint(holder, bodyStart, parsed.codeRange, CODE)
                 parsed.templateRange?.let {
                     paint(holder, bodyStart, it, REFERENCE)
-                    reportUnknownTemplate(holder, element, bodyStart, parsed.template!!, it)
-                }
-
-                if (parsed.code < 100 || parsed.code > 599) {
-                    holder.newAnnotation(HighlightSeverity.ERROR, "${parsed.code} is not an HTTP status code.")
-                        .range(range(bodyStart, parsed.codeRange))
-                        .create()
                 }
             }
 
             is Parsed.Security -> {
                 paint(holder, bodyStart, parsed.schemeRange, REFERENCE)
-                reportUnknownScheme(holder, element, bodyStart, parsed.scheme, parsed.schemeRange)
             }
 
             is Parsed.DefaultOrExample -> paint(holder, bodyStart, parsed.variableRange, VARIABLE)
 
-            is Parsed.Malformed -> {
-                // The generator drops such a line without a word, so the spec
-                // simply lacks the field. Saying it here is the whole point.
-                holder.newAnnotation(
-                    HighlightSeverity.ERROR,
-                    "@$tagName does not parse and will be ignored — ${parsed.reason}."
-                ).range(TextRange(bodyStart, bodyStart + body.length)).create()
-            }
+            is Parsed.Malformed -> Unit
 
             Parsed.Empty -> Unit
         }
     }
 
-    /**
-     * A name nothing declares.
-     *
-     * The generator does not complain about it — it writes a `${'$'}ref` at
-     * `#/components/schemas/Whatever` into a spec that still passes validation,
-     * and the break surfaces in whoever generates a client from it.
-     * Underlining it here is the earliest anyone can be told.
-     */
-    private fun reportUnknownTemplate(
-        holder: AnnotationHolder,
-        element: PsiElement,
-        base: Int,
-        name: String,
-        at: IntRange,
-    ) {
-        if (name.isEmpty()) return
-        if (name in TemplateLookup.allNames(element.project)) return
 
-        holder.newAnnotation(
-            HighlightSeverity.ERROR,
-            "Template '$name' is not declared in getOpenApiTemplates() — " +
-                "the generated spec will carry a \$ref pointing at nothing."
-        )
-            .range(range(base, at))
-            // The name is already written here; retyping it in another file is
-            // where the second, slightly different spelling comes from.
-            .withFix(CreateTemplateFix(name))
-            .create()
-    }
-
-    /**
-     * A scheme nothing declares.
-     *
-     * Silent while the project declares no schemes at all — see
-     * [SecurityLookup.isInUse]. Once one exists, an unrecognised name means the
-     * spec will ask for authentication that `components.securitySchemes` never
-     * describes.
-     */
-    private fun reportUnknownScheme(
-        holder: AnnotationHolder,
-        element: PsiElement,
-        base: Int,
-        name: String,
-        at: IntRange,
-    ) {
-        if (name.isEmpty()) return
-        if (!SecurityLookup.isInUse(element.project)) return
-        if (name in SecurityLookup.allNames(element.project)) return
-
-        holder.newAnnotation(
-            HighlightSeverity.ERROR,
-            "Security scheme '$name' is not declared in getOpenApiSecurityDefinitions() — " +
-                "the spec will reference a scheme it never defines."
-        ).range(range(base, at)).create()
-    }
 
     private fun paint(holder: AnnotationHolder, base: Int, at: IntRange, key: TextAttributesKey) {
         holder.newSilentAnnotation(HighlightSeverity.INFORMATION)

@@ -1,0 +1,11 @@
+<html><body>
+<p>Reports a <code>@security</code> naming a scheme
+<code>getOpenApiSecurityDefinitions()</code> never declares.</p>
+<p>The generator writes the name under <code>security:</code> anyway, referring
+to something <code>components.securitySchemes</code> does not define. The
+specification validates and cannot be used to authenticate anything. One
+installation carried 848 such tags, naming four schemes nobody had declared.</p>
+<p>By default the inspection stays quiet in a project that declares no schemes
+at all: such an application has evidently not taken the feature up, and painting
+every tag red teaches people to look past the plugin rather than at it.</p>
+</body></html>

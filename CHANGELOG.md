@@ -5,6 +5,38 @@ All notable changes to this plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0]
+
+### Changed
+
+- **Every check is an inspection now, not an annotator.** An annotator hides its
+  severity in the code, cannot be suppressed, cannot be switched off and takes
+  no part in "Analyze → Inspect Code". `LocalInspectionTool` gives all four away
+  — which is also why this plugin will never grow a settings screen of its own.
+
+  Six inspections, each with its own name, description and severity:
+  markup the generator cannot read, unknown type, undeclared response template,
+  undeclared security scheme, a docblock that disagrees with itself, and a route
+  map pointing at nothing.
+
+  Whether `@security` is policed in a project that declares no schemes is now a
+  checkbox. Until this release the answer was decided in the code, for everyone.
+
+  Colouring stays an annotator: a colour is not a complaint.
+
+### Added
+
+- **Checks that need the whole docblock**, previously only in `api:lint`: a
+  field declared twice, a nested field whose parent is never declared, a parent
+  declared as the wrong kind of container, two answers for one status code. In
+  each case the generator keeps the last thing it saw and says nothing.
+
+  Deliberately not brought over: `@default` for a variable with no `@input`.
+  Middleware contributes inputs of its own, and telling a stray default from a
+  legitimate one needs the route map and the middleware chain resolved — which
+  the command-line linter does with the application booted, and an inspection
+  would only guess at.
+
 ## [0.1.1]
 
 Two defects found by using the plugin on a real project rather than by running

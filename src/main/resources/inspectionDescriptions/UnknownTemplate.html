@@ -1,0 +1,12 @@
+<html><body>
+<p>Reports a response template named by <code>@response 200 {Name}</code>,
+<code>@input @Model</code> or <code>@output @Model[]</code> that
+<code>getOpenApiTemplates()</code> never declares.</p>
+<p>The generator writes the name into the specification regardless, as a
+<code>$ref</code> at <code>#/components/schemas/…</code> that resolves to
+nothing. The document still validates, so nothing local complains; it breaks for
+whoever generates a client from it. One real installation carried 323 such
+references.</p>
+<p>A quick fix declares the template, taking the name verbatim from the
+docblock.</p>
+</body></html>

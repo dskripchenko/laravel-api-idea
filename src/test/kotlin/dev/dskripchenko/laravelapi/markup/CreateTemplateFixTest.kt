@@ -1,6 +1,7 @@
 package dev.dskripchenko.laravelapi.markup
 
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import dev.dskripchenko.laravelapi.inspections.UnknownTemplateInspection
 
 /**
  * Alt+Enter on a template nobody declared.
@@ -40,6 +41,9 @@ class CreateTemplateFixTest : BasePlatformTestCase() {
     }
 
     private fun applyFixOn(docblockLine: String) {
+        // The fix now arrives from an inspection, not from an annotator: without
+        // enabling it there is nothing to offer.
+        myFixture.enableInspections(UnknownTemplateInspection::class.java)
         myFixture.configureByText(
             "UserController.php",
             """
