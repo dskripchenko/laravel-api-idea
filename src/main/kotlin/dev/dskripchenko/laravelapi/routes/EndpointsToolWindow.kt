@@ -1,7 +1,9 @@
 package dev.dskripchenko.laravelapi.routes
 
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
@@ -12,7 +14,9 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.content.ContentFactory
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.JBUI
+import com.jetbrains.php.lang.psi.elements.Method
 import dev.dskripchenko.laravelapi.LaravelApiProject
 import java.awt.BorderLayout
 import java.awt.event.MouseAdapter
@@ -50,11 +54,17 @@ class EndpointsToolWindowFactory : ToolWindowFactory, DumbAware {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val panel = EndpointsPanel(project)
         val content = ContentFactory.getInstance().createContent(panel, null, false)
+        // So a background read started by the panel is cancelled when the
+        // window goes away, rather than finishing into a component nobody is
+        // looking at any more.
+        content.setDisposer(panel)
         toolWindow.contentManager.addContent(content)
     }
 }
 
-private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout()) {
+private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout()), Disposable {
+
+    override fun dispose() = Unit
 
     private data class Row(val label: String, val entry: RouteMapLookup.ActionEntry) {
         override fun toString(): String = label
@@ -89,7 +99,7 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
         // how the list came up blank and stayed that way. Read it again once
         // the IDE is in smart mode, and let the window's own activation refresh
         // it afterwards.
-        DumbService.getInstance(project).runWhenSmart { reload() }
+        reload()
 
         project.messageBus.connect().subscribe(
             ToolWindowManagerListener.TOPIC,
@@ -101,27 +111,46 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
         )
     }
 
+    /**
+     * Rebuilds the list off the event thread.
+     *
+     * Reading PSI or the index requires a read action, and doing it on the
+     * event thread is what threw
+     * "Read access is allowed from inside read-action only" the first time this
+     * window was used in anger. `nonBlocking` also keeps the interface
+     * responsive: on a real project the map spans every Api class of every
+     * panel, and that is not work to do between two mouse events.
+     */
     private fun reload() {
-        if (!LaravelApiProject.isEnabled(project)) {
-            // Said plainly: an empty list and "this project has nothing to do
-            // with the package" look identical otherwise.
-            status.text = "This project does not use dskripchenko/laravel-api"
-            model.clear()
+        ReadAction.nonBlocking<Pair<List<Row>, String>> {
+            if (!LaravelApiProject.isEnabled(project)) {
+                // Said plainly: an empty list and "this project has nothing to
+                // do with the package" look identical otherwise.
+                return@nonBlocking emptyList<Row>() to "This project does not use dskripchenko/laravel-api"
+            }
 
-            return
+            val rows = RouteMapLookup.allActions(project)
+                .map { Row("${it.controllerKey}.${it.actionKey}  →  ${it.methodName}()", it) }
+                .sortedBy { it.label }
+
+            val note = if (rows.isEmpty()) {
+                "No endpoints found — getMethods() may be built dynamically"
+            } else {
+                "${rows.size} endpoint(s)"
+            }
+
+            rows to note
         }
-
-        all = RouteMapLookup.allActions(project)
-            .map { Row("${it.controllerKey}.${it.actionKey}  →  ${it.methodName}()", it) }
-            .sortedBy { it.label }
-
-        status.text = if (all.isEmpty()) {
-            "No endpoints found — getMethods() may be built dynamically"
-        } else {
-            "${all.size} endpoint(s)"
-        }
-
-        refilter()
+            // The index answers nothing useful while it is still being built,
+            // and a list that came up empty for that reason used to stay empty.
+            .inSmartMode(project)
+            .expireWith(this)
+            .finishOnUiThread(ModalityState.defaultModalityState()) { (rows, note) ->
+                all = rows
+                status.text = note
+                refilter()
+            }
+            .submit(AppExecutorUtil.getAppExecutorService())
     }
 
     private fun refilter() {
@@ -140,6 +169,13 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
      */
     private fun open() {
         val row = list.selectedValue ?: return
-        RouteMapLookup.targetMethod(project, row.entry)?.navigate(true)
+
+        // Resolving the method touches the index, so it happens inside a read
+        // action; navigation is a UI act and stays on this thread.
+        val method = ReadAction.compute<Method?, RuntimeException> {
+            RouteMapLookup.targetMethod(project, row.entry)
+        }
+
+        method?.navigate(true)
     }
 }
