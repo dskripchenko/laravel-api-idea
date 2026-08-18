@@ -18,6 +18,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.JBUI
 import com.jetbrains.php.lang.psi.elements.Method
 import dev.dskripchenko.laravelapi.LaravelApiProject
+import dev.dskripchenko.laravelapi.lint.LintPanel
 import java.awt.BorderLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -53,12 +54,20 @@ class EndpointsToolWindowFactory : ToolWindowFactory, DumbAware {
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val panel = EndpointsPanel(project)
-        val content = ContentFactory.getInstance().createContent(panel, null, false)
+        val content = ContentFactory.getInstance().createContent(panel, "Endpoints", false)
         // So a background read started by the panel is cancelled when the
         // window goes away, rather than finishing into a component nobody is
         // looking at any more.
         content.setDisposer(panel)
         toolWindow.contentManager.addContent(content)
+
+        // The linter lives beside the endpoints rather than in a window of its
+        // own: both answer questions about the same map, and two tool windows
+        // for one package is one too many.
+        val lint = LintPanel(project)
+        val lintContent = ContentFactory.getInstance().createContent(lint, "Lint", false)
+        lintContent.setDisposer(lint)
+        toolWindow.contentManager.addContent(lintContent)
     }
 }
 

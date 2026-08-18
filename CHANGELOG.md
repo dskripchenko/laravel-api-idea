@@ -5,6 +5,27 @@ All notable changes to this plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0]
+
+### Added
+
+- **`api:lint` runs from the IDE**, in a Lint tab beside the endpoint list, or
+  from Tools → Run api:lint.
+
+  Not for the convenience of not opening a terminal. The command carries
+  twenty-eight rules against the ten implemented here, and writing the other
+  eighteen in Kotlin would create a second truth that drifts from the first —
+  the very thing this plugin looks for in other people's code. So the fast
+  checks run as you type, and the whole set is asked of the application.
+
+  Findings are clickable: their address is `version · controller.action`, which
+  the route map turns into a method, so a double click opens the docblock the
+  finding is about.
+
+  It needs `artisan` and a `php` on PATH. Where they are missing the reason is
+  said in words — availability is a file question, deliberately, so that a menu
+  being built does not depend on the index being ready.
+
 ## [0.3.0]
 
 ### Added

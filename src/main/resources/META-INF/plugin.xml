@@ -185,4 +185,14 @@
             level="ERROR"
             implementationClass="dev.dskripchenko.laravelapi.inspections.RouteMapInspection"/>
     </extensions>
+
+    <actions>
+        <action
+            id="LaravelApi.RunLint"
+            class="dev.dskripchenko.laravelapi.lint.RunApiLintAction"
+            text="Run api:lint"
+            description="Ask the application to check its own API markup">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+    </actions>
 </idea-plugin>
