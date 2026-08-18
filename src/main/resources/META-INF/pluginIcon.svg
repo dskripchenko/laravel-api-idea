@@ -1,0 +1,18 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    The markup pointing at the code it describes: a docblock's braces on the
+    left, an arrow, and the method it names on the right. The whole plugin is
+    that one arrow, so the icon is too.
+  -->
+  <rect x="1" y="1" width="38" height="38" rx="9" fill="#3B5BDB"/>
+
+  <!-- The docblock: three lines, the middle one the tag. -->
+  <rect x="8" y="12" width="9" height="2" rx="1" fill="#FFFFFF" opacity="0.55"/>
+  <rect x="8" y="19" width="12" height="2" rx="1" fill="#FFFFFF"/>
+  <rect x="8" y="26" width="7" height="2" rx="1" fill="#FFFFFF" opacity="0.55"/>
+
+  <!-- The arrow into the code. -->
+  <path d="M22 20h7" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+  <path d="M27 16.5l4 3.5-4 3.5" stroke="#FFFFFF" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

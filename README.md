@@ -98,10 +98,45 @@ where its dependency does.
 ./gradlew runIde          # a sandbox IDE with the plugin loaded
 ```
 
-The build compiles against the locally installed PhpStorm
-(`/Applications/PhpStorm.app`) by default — it saves a gigabyte of download and
-is the IDE the author runs. Point it elsewhere with `-PphpstormPath=…`, or pin a
-downloaded version with `-PphpstormVersion=2025.2`, which is what CI does.
+The build compiles against a pinned, downloaded PhpStorm — 2025.2 by default,
+overridable with `-PphpstormVersion=…`. Local and CI therefore build against the
+same thing.
+
+Compiling against the IDE installed on this machine was tried and dropped. It
+saved the download and cost more than it saved: a PhpStorm update changed the
+module descriptor format, the local build stopped resolving its own
+dependencies, and CI — which has no IDE at all — kept working the whole time.
+A build that only breaks on the author's machine is the worst kind.
+
+`sinceBuild` is 251 while the compile target is 252. That is deliberate and
+checked: the verifier reports PS-251 as compatible, so the lower bound is real
+rather than hopeful. Gradle warns about the pair; the warning is the price of a
+supported range wider than the build target.
+
+## Publishing
+
+The first version cannot be published from here: JetBrains Marketplace accepts
+it only through the web form and reviews it by hand. Everything after that goes
+by tag.
+
+```bash
+./gradlew publishPlugin        # needs JETBRAINS_MARKETPLACE_TOKEN
+```
+
+`.github/workflows/publish.yml` does the same on `v*` tags, after checking that
+the tag and the version in `build.gradle.kts` agree — a tag may well sit on a
+release that is not meant for the registry. It runs the tests and the verifier
+first: a tag can point at a commit the branch CI never saw, and a version cannot
+be withdrawn from the registry once published.
+
+Signing is optional. Marketplace signs unsigned uploads itself; the
+`PLUGIN_CERTIFICATE_CHAIN` / `PLUGIN_PRIVATE_KEY` / `PLUGIN_PRIVATE_KEY_PASSWORD`
+variables exist so that the archive can be proven to have left this machine
+untampered. Without them the signing task simply has nothing to do.
+
+The change notes on the listing come from `CHANGELOG.md` — the section matching
+the version being built. Releasing a version the changelog does not mention
+fails the build rather than publishing an empty "what's new".
 
 ## License
 

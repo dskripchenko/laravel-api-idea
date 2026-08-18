@@ -1,0 +1,15 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    The same mark for a dark background. The plate is lightened rather than
+    inverted: on a dark toolbar the light-theme blue reads as a hole.
+  -->
+  <rect x="1" y="1" width="38" height="38" rx="9" fill="#5C7CFA"/>
+
+  <rect x="8" y="12" width="9" height="2" rx="1" fill="#0B1020" opacity="0.55"/>
+  <rect x="8" y="19" width="12" height="2" rx="1" fill="#0B1020"/>
+  <rect x="8" y="26" width="7" height="2" rx="1" fill="#0B1020" opacity="0.55"/>
+
+  <path d="M22 20h7" stroke="#0B1020" stroke-width="2" stroke-linecap="round"/>
+  <path d="M27 16.5l4 3.5-4 3.5" stroke="#0B1020" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

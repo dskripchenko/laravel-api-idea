@@ -1,0 +1,46 @@
+name: Build
+
+# Каждый пуш и каждый PR: тесты и верификатор JetBrains.
+#
+# Верификатор здесь не роскошь: платформа ломает совместимость чаще, чем
+# выходят её релизы, и узнать об этом от пользователя в отзыве на Marketplace
+# заметно хуже, чем от CI.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Test and verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # На машине автора сборка идёт против установленного PhpStorm; у раннера
+      # IDE нет, поэтому версия задаётся явно и скачивается.
+      - name: Test
+        run: ./gradlew test -PphpstormVersion=2025.2
+
+      - name: Verify against supported IDEs
+        run: ./gradlew verifyPlugin -PphpstormVersion=2025.2
+
+      - name: Upload the plugin archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin
+          path: build/distributions/*.zip

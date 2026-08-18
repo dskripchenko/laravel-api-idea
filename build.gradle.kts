@@ -22,16 +22,13 @@ dependencies {
         // PHP plugin's PSI, and that plugin is not shipped with the Community
         // edition.
         //
-        // The locally installed IDE by default — it is the one the author
-        // actually runs, and it saves a gigabyte of download per clean build.
-        // CI has no IDE installed, so there the version is pinned through
-        // -PphpstormVersion and downloaded.
-        val pinned = providers.gradleProperty("phpstormVersion").orNull
-        if (pinned != null) {
-            phpstorm(pinned)
-        } else {
-            local(providers.gradleProperty("phpstormPath").orElse("/Applications/PhpStorm.app"))
-        }
+        // A pinned, downloaded distribution rather than the IDE installed on
+        // this machine. Building against the local install saved a gigabyte and
+        // cost more than it saved: the descriptor format changed under a
+        // PhpStorm update and the build stopped resolving its own dependencies,
+        // while CI — which has no IDE — kept working. One source for both is
+        // worth the download.
+        phpstorm(providers.gradleProperty("phpstormVersion").orElse("2025.2"))
 
         // The PHP plugin ships inside PhpStorm, and its API still has to be
         // asked for by id: bundled does not mean on the classpath.
@@ -51,6 +48,14 @@ intellijPlatform {
     pluginConfiguration {
         name = "Laravel API"
 
+        // The notes for the version being built, lifted from CHANGELOG.md.
+        // Kept in one place on purpose: a listing whose history disagrees with
+        // the repository is worse than one with no history at all.
+        // project.version explicitly: inside this block a bare `version` is
+        // the plugin configuration's own property, and reading it here asks the
+        // changelog for a section named after a Gradle provider.
+        changeNotes = provider { changeNotesFor(project.version.toString()) }
+
         ideaVersion {
             sinceBuild = "251"
             // Deliberately open-ended. A hard untilBuild means the plugin
@@ -59,6 +64,21 @@ intellijPlatform {
             // yet".
             untilBuild = provider { null }
         }
+    }
+
+    publishing {
+        // Never a literal: a Marketplace token is a write credential for every
+        // plugin the account owns.
+        token = providers.environmentVariable("JETBRAINS_MARKETPLACE_TOKEN")
+    }
+
+    signing {
+        // Optional. Marketplace signs unsigned uploads itself; signing here
+        // proves the archive left this machine untampered. Absent variables
+        // simply leave the task without input, and publishing still works.
+        certificateChain = providers.environmentVariable("PLUGIN_CERTIFICATE_CHAIN")
+        privateKey = providers.environmentVariable("PLUGIN_PRIVATE_KEY")
+        password = providers.environmentVariable("PLUGIN_PRIVATE_KEY_PASSWORD")
     }
 
     pluginVerification {
@@ -97,4 +117,99 @@ tasks {
     buildSearchableOptions {
         enabled = false
     }
+}
+
+/**
+ * The section of CHANGELOG.md describing [version], as HTML for the listing.
+ *
+ * Deliberately unforgiving: releasing a version the changelog does not mention
+ * fails the build rather than publishing an empty "what's new".
+ */
+fun changeNotesFor(version: String): String {
+    val changelog = file("CHANGELOG.md")
+    require(changelog.exists()) { "CHANGELOG.md is missing" }
+
+    val lines = changelog.readLines()
+    val start = lines.indexOfFirst { it.startsWith("## [$version]") }
+    require(start >= 0) { "CHANGELOG.md has no section for $version" }
+
+    val rest = lines.drop(start + 1)
+    val end = rest.indexOfFirst { it.startsWith("## ") }
+    val body = if (end >= 0) rest.take(end) else rest
+
+    return body.joinToString("\n").trim().let(::markdownToHtml)
+}
+
+/** Enough Markdown for a changelog entry: headings, bullets, code and links. */
+fun markdownToHtml(markdown: String): String {
+    val html = StringBuilder()
+    val paragraph = StringBuilder()
+    val bullet = StringBuilder()
+    var inList = false
+
+    fun inline(text: String): String = text
+        .replace(Regex("""\[([^]]+)]\(([^)]+)\)"""), """<a href="$2">$1</a>""")
+        .replace(Regex("""\*\*([^*]+)\*\*"""), "<b>$1</b>")
+        .replace(Regex("""`([^`]+)`"""), "<code>$1</code>")
+
+    // Markdown wraps prose across lines; HTML does not. Without flushing on a
+    // blank line rather than on every line, one paragraph becomes five.
+    fun flushParagraph() {
+        if (paragraph.isNotEmpty()) {
+            html.append("<p>").append(inline(paragraph.toString().trim())).append("</p>")
+            paragraph.setLength(0)
+        }
+    }
+
+    fun flushBullet() {
+        if (bullet.isNotEmpty()) {
+            html.append("<li>").append(inline(bullet.toString().trim())).append("</li>")
+            bullet.setLength(0)
+        }
+    }
+
+    fun closeList() {
+        flushBullet()
+        if (inList) {
+            html.append("</ul>")
+            inList = false
+        }
+    }
+
+    for (raw in markdown.lines()) {
+        val line = raw.trim()
+
+        when {
+            line.startsWith("- ") -> {
+                flushParagraph()
+                flushBullet()
+                if (!inList) {
+                    html.append("<ul>")
+                    inList = true
+                }
+                bullet.append(line.removePrefix("- "))
+            }
+
+            line.startsWith("### ") -> {
+                flushParagraph()
+                closeList()
+                html.append("<h4>").append(inline(line.removePrefix("### "))).append("</h4>")
+            }
+
+            line.isEmpty() -> {
+                flushParagraph()
+                closeList()
+            }
+
+            // A wrapped continuation of whatever is open.
+            inList -> bullet.append(" ").append(line)
+
+            else -> paragraph.append(" ").append(line)
+        }
+    }
+
+    flushParagraph()
+    closeList()
+
+    return html.toString()
 }
