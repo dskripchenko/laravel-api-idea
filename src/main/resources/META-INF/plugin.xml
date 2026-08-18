@@ -4,14 +4,88 @@
     <vendor email="denskrp90@gmail.com" url="https://github.com/dskripchenko/laravel-api">Denis Skripchenko</vendor>
 
     <description><![CDATA[
-        IDE support for <a href="https://github.com/dskripchenko/laravel-api">dskripchenko/laravel-api</a>:
-        the docblock markup its OpenAPI generator reads, and the route map its
-        <code>getMethods()</code> declares.
-        <br/><br/>
-        The package fails quietly by design — an action pointing at a renamed
-        method answers 404, a <code>@response</code> naming a template that does
-        not exist becomes a dangling <code>$ref</code>. This plugin makes both
-        visible while typing.
+        <p>
+            IDE support for
+            <a href="https://github.com/dskripchenko/laravel-api">dskripchenko/laravel-api</a> —
+            the docblock markup its OpenAPI generator reads, and the route map its
+            <code>getMethods()</code> declares.
+        </p>
+
+        <p>
+            The package fails quietly by design, and that is what this plugin is for.
+            An action whose controller method was renamed answers <b>404</b> — the same
+            404 as a mistyped URL, so nothing in the logs tells the two apart. A type
+            outside the known set silently becomes <code>string</code>. A
+            <code>@response 200 {UserResponse}</code> naming a template nobody declared
+            becomes a <code>$ref</code> pointing at nothing, in a spec that still passes
+            validation. In every one of those cases the application boots, the tests
+            pass, and the mistake reaches whoever consumes the API.
+        </p>
+
+        <p>
+            Running the package's own <code>api:lint</code> over one real application
+            turned up 1204 such references at once — a couple of dozen causes, multiplied
+            by every resource and every panel. This plugin shows the same thing while
+            typing.
+        </p>
+
+        <h3>What it does</h3>
+
+        <ul>
+            <li><b>Highlights the markup</b> — <code>@input</code>, <code>@output</code>,
+            <code>@header</code>, <code>@response</code>, <code>@security</code>,
+            <code>@default</code>, <code>@example</code>. Types, formats, variables,
+            template references and status codes are coloured, so a line the generator
+            has stopped understanding stops looking like the ones it still does.</li>
+
+            <li><b>Reports markup that does not parse</b>, where it is written. The
+            generator drops such a line without a word and the field never reaches the
+            spec.</li>
+
+            <li><b>Flags unknown types</b> with the consequence named: the generator will
+            call the field <code>string</code>.</li>
+
+            <li><b>Navigates</b> from <code>{TemplateName}</code>, <code>@Model</code>,
+            <code>@security Scheme</code> and <code>@input [method]</code> to their
+            declarations.</li>
+
+            <li><b>Marks dangling references</b> — a template or a security scheme
+            nothing declares — and offers a quick fix that declares the template for
+            you, creating <code>getOpenApiTemplates()</code> when the class has none,
+            with the name taken verbatim from the docblock.</li>
+
+            <li><b>Draws gutter arrows both ways</b> between the route map and the
+            controllers: from an action's key to the method it routes, and from a method
+            back to every action routing it. An action with no arrow points at a method
+            that is not there.</li>
+
+            <li><b>Turns the silent 404 red</b>: an action pointing at a missing,
+            non-public or static method is an error while you type, not a bug report
+            later.</li>
+
+            <li><b>Completes</b> types, formats, template names, security schemes and
+            status codes — and, deliberately, nothing at all once the caret has passed
+            the variable into the description.</li>
+        </ul>
+
+        <h3>Quiet by default</h3>
+
+        <p>
+            Nothing fires unless the project actually has the package on its classpath:
+            <code>@input</code> and <code>@output</code> are ordinary words elsewhere.
+            And <code>@security</code> is not policed while a project declares no schemes
+            at all — such an application has evidently not taken the feature up, and
+            painting every tag red would teach people to look past the plugin rather
+            than at it.
+        </p>
+
+        <h3>Requirements</h3>
+
+        <p>
+            PhpStorm, or IntelliJ IDEA Ultimate with the PHP plugin installed. The whole
+            plugin hangs off the PHP plugin's PSI, so IDEA Community cannot run it —
+            JetBrains does not publish the PHP plugin for it.
+        </p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
