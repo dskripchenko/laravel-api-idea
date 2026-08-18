@@ -1,0 +1,39 @@
+name: Verify
+
+# Совместимость с IDE — раз в неделю и по кнопке.
+#
+# Проверка отвечает на вопрос «не сломала ли нас новая версия платформы», а не
+# «не сломали ли мы себя сами»: её ответ меняется от релизов JetBrains, а не от
+# коммитов в этот репозиторий. Гонять её на каждый пуш — это шесть скачанных
+# дистрибутивов IDE ради результата, который не изменился.
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Verify against supported IDEs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Verify
+        run: ./gradlew verifyPlugin
+
+      - name: Upload the verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-reports
+          path: build/reports/pluginVerifier/

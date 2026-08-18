@@ -42,13 +42,13 @@ jobs:
       # Тег может стоять на коммите, который основной CI не гонял: он ходит по
       # веткам. В реестр непроверенное не уезжает — оттуда версию не отозвать.
       - name: Test
-        run: ./gradlew test -PphpstormVersion=2025.2
+        run: ./gradlew test
 
       - name: Verify against supported IDEs
-        run: ./gradlew verifyPlugin -PphpstormVersion=2025.2
+        run: ./gradlew verifyPlugin
 
       - name: Publish
-        run: ./gradlew publishPlugin -PphpstormVersion=2025.2
+        run: ./gradlew publishPlugin
         env:
           JETBRAINS_MARKETPLACE_TOKEN: ${{ secrets.JETBRAINS_MARKETPLACE_TOKEN }}
           PLUGIN_CERTIFICATE_CHAIN: ${{ secrets.PLUGIN_CERTIFICATE_CHAIN }}

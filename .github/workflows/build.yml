@@ -1,10 +1,12 @@
 name: Build
 
-# Каждый пуш и каждый PR: тесты и верификатор JetBrains.
+# Каждый пуш и каждый PR: тесты.
 #
-# Верификатор здесь не роскошь: платформа ломает совместимость чаще, чем
-# выходят её релизы, и узнать об этом от пользователя в отзыве на Marketplace
-# заметно хуже, чем от CI.
+# Верификатор здесь НЕ гоняется, и это измерено, а не предположено: первый
+# прогон занял 13.5 минуты, из которых 6.5 — скачивание шести дистрибутивов IDE
+# и ещё 3 — сохранение раздувшегося кэша. При этом его ответ меняется не от
+# наших правок, а от выхода новой версии платформы. Поэтому он живёт в
+# verify.yml по расписанию и в publish.yml перед публикацией.
 on:
   push:
     branches: [main]
@@ -15,8 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Test and verify
+  test:
+    name: Test
     runs-on: ubuntu-latest
 
     steps:
@@ -31,13 +33,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # На машине автора сборка идёт против установленного PhpStorm; у раннера
-      # IDE нет, поэтому версия задаётся явно и скачивается.
       - name: Test
-        run: ./gradlew test -PphpstormVersion=2025.2
+        run: ./gradlew test
 
-      - name: Verify against supported IDEs
-        run: ./gradlew verifyPlugin -PphpstormVersion=2025.2
+      - name: Build the plugin archive
+        run: ./gradlew buildPlugin
 
       - name: Upload the plugin archive
         uses: actions/upload-artifact@v4

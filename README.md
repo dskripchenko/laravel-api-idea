@@ -123,6 +123,13 @@ by tag.
 ./gradlew publishPlugin        # needs JETBRAINS_MARKETPLACE_TOKEN
 ```
 
+CI is split by what a check actually answers: `build.yml` runs the tests on
+every push, while `verify.yml` runs the IDE-compatibility verifier weekly and on
+demand. The split is measured rather than guessed — with the verifier inline a
+push took 13.5 minutes, of which 6.5 went on downloading six IDE distributions
+and three more on storing the cache they left behind. Its answer changes when
+JetBrains ships a platform release, not when this repository gets a commit.
+
 `.github/workflows/publish.yml` does the same on `v*` tags, after checking that
 the tag and the version in `build.gradle.kts` agree — a tag may well sit on a
 release that is not meant for the registry. It runs the tests and the verifier
