@@ -5,6 +5,23 @@ All notable changes to this plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0]
+
+### Added
+
+- **Find Usages on a response template.** Standing on `'DraftPrintResult'` in
+  `getOpenApiTemplates()`, the question is always the same — is anyone still
+  using this, can it go. Until now the answer came from a text search, which
+  also finds the name in prose and inside `$userResponse`.
+
+  The search reads the docblocks the way the generator does, so only real
+  references count, and goes through the word index rather than over every file
+  in the project.
+
+  A handler rather than references, for the reason recorded in the README:
+  `PhpDocTagImpl` calls itself a reference host and then ignores contributed
+  references, so nothing inside a docblock can be a reference to anything.
+
 ## [0.2.0]
 
 ### Changed

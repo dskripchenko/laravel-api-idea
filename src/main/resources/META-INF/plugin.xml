@@ -103,6 +103,9 @@
             language="PHP"
             implementationClass="dev.dskripchenko.laravelapi.markup.TagCompletionContributor"/>
 
+        <findUsagesHandlerFactory
+            implementation="dev.dskripchenko.laravelapi.navigation.TemplateFindUsagesHandlerFactory"/>
+
         <codeInsight.lineMarkerProvider
             language="PHP"
             implementationClass="dev.dskripchenko.laravelapi.routes.RouteLineMarkerProvider"/>
