@@ -59,7 +59,12 @@ Early. What works today:
   the generator. Vendored classes are skipped, and with several API versions the
   target is asked for rather than guessed.
 
-Planned: publication to the JetBrains Marketplace.
+What comes next, and in what order, is in [docs/roadmap.md](docs/roadmap.md):
+inspections first (they replace the annotators and bring the settings screen
+with them), then find-usages for templates and an endpoint list, then running
+`api:lint` from the IDE, then generating the markup from validation rules and
+responses — with a hard rule about not guessing when the code cannot be read
+statically.
 
 One implementation note worth recording: navigation is a `GotoDeclarationHandler`
 rather than a `PsiReference`. `PhpDocTagImpl` declares itself a
