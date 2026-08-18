@@ -1,9 +1,11 @@
 package dev.dskripchenko.laravelapi.routes
 
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBLabel
@@ -61,6 +63,7 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
     private val model = DefaultListModel<Row>()
     private val list = JBList(model)
     private val search = SearchTextField()
+    private val status = JBLabel()
     private var all: List<Row> = emptyList()
 
     init {
@@ -77,31 +80,46 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
         })
 
         border = JBUI.Borders.empty(4)
+        add(search, BorderLayout.NORTH)
+        add(JBScrollPane(list), BorderLayout.CENTER)
+        add(status, BorderLayout.SOUTH)
 
-        if (LaravelApiProject.isEnabled(project)) {
-            add(search, BorderLayout.NORTH)
-            add(JBScrollPane(list), BorderLayout.CENTER)
-            reload()
-        } else {
-            // Said plainly rather than left as an empty list: "no endpoints" and
-            // "this project has nothing to do with the package" look identical
-            // otherwise.
-            add(
-                JBLabel(
-                    "<html><body style='padding:8px'>This project does not use " +
-                        "<code>dskripchenko/laravel-api</code>.<br><br>" +
-                        "If it has just been added, the list appears once indexing finishes." +
-                        "</body></html>"
-                ),
-                BorderLayout.CENTER,
-            )
-        }
+        // The window is registered before the project finishes opening, so the
+        // first read of the index happens while it is still empty — which is
+        // how the list came up blank and stayed that way. Read it again once
+        // the IDE is in smart mode, and let the window's own activation refresh
+        // it afterwards.
+        DumbService.getInstance(project).runWhenSmart { reload() }
+
+        project.messageBus.connect().subscribe(
+            ToolWindowManagerListener.TOPIC,
+            object : ToolWindowManagerListener {
+                override fun toolWindowShown(toolWindow: ToolWindow) {
+                    if (toolWindow.id == "Laravel API") reload()
+                }
+            },
+        )
     }
 
     private fun reload() {
+        if (!LaravelApiProject.isEnabled(project)) {
+            // Said plainly: an empty list and "this project has nothing to do
+            // with the package" look identical otherwise.
+            status.text = "This project does not use dskripchenko/laravel-api"
+            model.clear()
+
+            return
+        }
+
         all = RouteMapLookup.allActions(project)
             .map { Row("${it.controllerKey}.${it.actionKey}  →  ${it.methodName}()", it) }
             .sortedBy { it.label }
+
+        status.text = if (all.isEmpty()) {
+            "No endpoints found — getMethods() may be built dynamically"
+        } else {
+            "${all.size} endpoint(s)"
+        }
 
         refilter()
     }
