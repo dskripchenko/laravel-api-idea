@@ -75,6 +75,44 @@ class RouteLineMarkerTest : BasePlatformTestCase() {
         )
     }
 
+    fun `test one arrow per action, not one per token`() {
+        addPackageAndController()
+        myFixture.configureByText(
+            "V1.php",
+            """
+            <?php
+            namespace App\Api;
+
+            use Dskripchenko\LaravelApi\Components\BaseApi;
+            use App\Api\Controllers\ItemController;
+
+            class V1 extends BaseApi
+            {
+                public static function getMethods(): array
+                {
+                    return [
+                        'controllers' => [
+                            'item' => [
+                                'controller' => ItemController::class,
+                                'actions' => [
+                                    'create' => ['action' => 'store'],
+                                ],
+                            ],
+                        ],
+                    ];
+                }
+            }
+            """.trimIndent()
+        )
+
+        // `'create'` is three PSI leaves — quote, text, quote. A marker on each
+        // gave one gutter icon opening a popup that offered the same method
+        // three times, two of them labelled `'`.
+        val arrows = myFixture.findAllGutters().filter { it.tooltipText?.contains("item.create") == true }
+
+        assertEquals(1, arrows.size)
+    }
+
     fun `test an action pointing at a renamed method gets no arrow`() {
         addPackageAndController()
         myFixture.configureByText(

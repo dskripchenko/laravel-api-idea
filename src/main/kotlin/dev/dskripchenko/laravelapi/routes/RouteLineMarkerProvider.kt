@@ -47,6 +47,12 @@ class RouteLineMarkerProvider : RelatedItemLineMarkerProvider() {
     private fun mapEntryMarker(leaf: PsiElement): RelatedItemLineMarkerInfo<*>? {
         val literal = leaf.parent as? StringLiteralExpression ?: return null
 
+        // One marker per literal, not per leaf. `'create'` is three tokens —
+        // quote, text, quote — and a marker on each produced one gutter icon
+        // opening a popup with the same target three times, two of them
+        // labelled `'`.
+        if (literal.firstChild !== leaf) return null
+
         val apiClass = PsiTreeUtil.getParentOfType(literal, PhpClass::class.java) ?: return null
         if (!isApiClass(apiClass)) return null
 
