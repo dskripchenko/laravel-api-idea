@@ -103,12 +103,22 @@
             language="PHP"
             implementationClass="dev.dskripchenko.laravelapi.markup.TagCompletionContributor"/>
 
+        <toolWindow
+            id="Laravel API"
+            anchor="right"
+            icon="/META-INF/pluginIcon.svg"
+            factoryClass="dev.dskripchenko.laravelapi.routes.EndpointsToolWindowFactory"/>
+
         <findUsagesHandlerFactory
             implementation="dev.dskripchenko.laravelapi.navigation.TemplateFindUsagesHandlerFactory"/>
 
         <codeInsight.lineMarkerProvider
             language="PHP"
             implementationClass="dev.dskripchenko.laravelapi.routes.RouteLineMarkerProvider"/>
+
+        <codeInsight.lineMarkerProvider
+            language="PHP"
+            implementationClass="dev.dskripchenko.laravelapi.navigation.TemplateLineMarkerProvider"/>
 
         <!--
             Inspections rather than annotators: the platform then owns the

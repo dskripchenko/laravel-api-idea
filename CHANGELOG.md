@@ -22,6 +22,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `PhpDocTagImpl` calls itself a reference host and then ignores contributed
   references, so nothing inside a docblock can be a reference to anything.
 
+- **A gutter arrow from a template declaration to the docblocks naming it**,
+  closing the loop the other direction already had. Its absence is the useful
+  half: a declaration with no arrow is a schema nobody refers to.
+
+- **An endpoint list**, in a tool window on the right. The route map is spread
+  across the Api classes of every version and panel, and an action key is a
+  string, so "where is `print-form.batch` handled" has been a question for grep.
+  Type to filter, double-click to open the method.
+
+  The window appears only in projects that use the package. Availability is
+  decided when the project opens, so one that gains laravel-api mid-session
+  shows the window after a restart.
+
 ## [0.2.0]
 
 ### Changed
