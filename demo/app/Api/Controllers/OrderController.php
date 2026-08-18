@@ -20,7 +20,7 @@ class OrderController extends ApiController
      * @input string $address.city City
      * @input array $items Line items
      * @input integer $items[].id Product id
-     * @input b $ddd Gcgwdhcjsc
+     * @input boolean $ddd Gcgwdhcjsc
      *
      * @output integer $id Order identifier
      * @output @Customer $customer Who ordered it
@@ -45,7 +45,7 @@ class OrderController extends ApiController
      * does not recognise a string, and writes references to templates nobody
      * declared into a spec that still validates.
      *
-     * @input datetime $placedAt When it was placed
+     * @input string $placedAt When it was placed
      * @input string $missingDollarSign The dollar is not optional
      *
      * @response 404 {TemplateNobodyDeclared}

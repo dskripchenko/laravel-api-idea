@@ -71,10 +71,13 @@ class EndpointsToolWindowTest : BasePlatformTestCase() {
         assertTrue("the tool window is not registered", registered.contains("Laravel API"))
     }
 
-    fun `test it stays out of projects that do not use the package`() {
-        // `shouldBeAvailable` is what keeps an unrelated project free of a
-        // window about a package it has never heard of.
-        assertFalse(EndpointsToolWindowFactory().shouldBeAvailable(project))
+    fun `test it is available even before the index answers`() {
+        // Availability used to ask the PHP index, and the platform asks for it
+        // while the project is still opening — so the index said "no package"
+        // and the window was never registered. Invisible, with nothing to find.
+        // It is registered unconditionally now; the panel says when a project
+        // has nothing to show.
+        assertTrue(EndpointsToolWindowFactory().shouldBeAvailable(project))
     }
 
     fun `test it offers every action of the map`() {

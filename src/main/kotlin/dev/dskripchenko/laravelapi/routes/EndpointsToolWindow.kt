@@ -6,6 +6,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.SearchTextField
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.content.ContentFactory
@@ -32,7 +33,17 @@ import javax.swing.event.DocumentEvent
  */
 class EndpointsToolWindowFactory : ToolWindowFactory, DumbAware {
 
-    override fun shouldBeAvailable(project: Project): Boolean = LaravelApiProject.isEnabled(project)
+    /**
+     * Always registered, and this is a correction rather than a preference.
+     *
+     * It used to answer `LaravelApiProject.isEnabled(project)`, which asks the
+     * PHP index. The platform decides availability while a project is opening —
+     * before indexing has finished — so the index answered "no package here",
+     * the window was never registered, and no amount of looking would find it.
+     * A feature that hides itself is worse than a tab in a project that does not
+     * need one, so the panel explains itself instead.
+     */
+    override fun shouldBeAvailable(project: Project): Boolean = true
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val panel = EndpointsPanel(project)
@@ -66,10 +77,25 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
         })
 
         border = JBUI.Borders.empty(4)
-        add(search, BorderLayout.NORTH)
-        add(JBScrollPane(list), BorderLayout.CENTER)
 
-        reload()
+        if (LaravelApiProject.isEnabled(project)) {
+            add(search, BorderLayout.NORTH)
+            add(JBScrollPane(list), BorderLayout.CENTER)
+            reload()
+        } else {
+            // Said plainly rather than left as an empty list: "no endpoints" and
+            // "this project has nothing to do with the package" look identical
+            // otherwise.
+            add(
+                JBLabel(
+                    "<html><body style='padding:8px'>This project does not use " +
+                        "<code>dskripchenko/laravel-api</code>.<br><br>" +
+                        "If it has just been added, the list appears once indexing finishes." +
+                        "</body></html>"
+                ),
+                BorderLayout.CENTER,
+            )
+        }
     }
 
     private fun reload() {

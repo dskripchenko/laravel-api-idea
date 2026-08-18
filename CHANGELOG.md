@@ -31,9 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   string, so "where is `print-form.batch` handled" has been a question for grep.
   Type to filter, double-click to open the method.
 
-  The window appears only in projects that use the package. Availability is
-  decided when the project opens, so one that gains laravel-api mid-session
-  shows the window after a restart.
+  The window is always registered, and that is a correction rather than a
+  preference: availability first asked the PHP index, and the platform decides
+  availability while the project is still opening — before indexing finishes.
+  The index answered "no package here", the window was never registered, and no
+  amount of looking would find it. A feature that hides itself is worse than a
+  tab in a project that does not need one, so the panel says plainly when there
+  is nothing to show.
 
 ## [0.2.0]
 
