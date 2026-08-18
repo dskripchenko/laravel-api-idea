@@ -24,6 +24,28 @@ class TagAnnotatorTest : BasePlatformTestCase() {
         )
     }
 
+    /** An Api class declaring the templates the markup below refers to. */
+    private fun addApiClass() {
+        myFixture.addFileToProject(
+            "app/Api/V1.php",
+            """
+            <?php
+            namespace App\Api;
+            use Dskripchenko\LaravelApi\Components\BaseApi;
+            class V1 extends BaseApi
+            {
+                public static function getOpenApiTemplates(): array
+                {
+                    return [
+                        'User' => ['id' => 'integer!'],
+                        'UserResponse' => ['id' => 'integer!'],
+                    ];
+                }
+            }
+            """.trimIndent()
+        )
+    }
+
     private fun check(docblock: String) {
         myFixture.configureByText(
             "Controller.php",
@@ -64,6 +86,7 @@ class TagAnnotatorTest : BasePlatformTestCase() {
 
     fun `test valid markup is left alone`() {
         enableLaravelApi()
+        addApiClass()
         check(
             """
      * @input string(email) ${'$'}email Address
@@ -72,6 +95,14 @@ class TagAnnotatorTest : BasePlatformTestCase() {
      * @response 200 {UserResponse}
      * @security BearerAuth
             """.trimIndent()
+        )
+    }
+
+    fun `test a template nobody declared is an error`() {
+        enableLaravelApi()
+        addApiClass()
+        check(
+            """     * @response 404 {<error descr="Template 'MissingTemplate' is not declared in getOpenApiTemplates() — the generated spec will carry a ${'$'}ref pointing at nothing.">MissingTemplate</error>}"""
         )
     }
 

@@ -27,10 +27,21 @@ Early. What works today:
   vanishing from the generated spec.
 - **Unknown types** are flagged with the consequence named: the generator will
   call the field `string`.
+- **Navigation**: Ctrl+Click on `{UserResponse}`, `@OrderRequest` or
+  `[buildInputs]` goes to the key in `getOpenApiTemplates()` or to the
+  controller's own method.
+- **Templates nobody declared** are underlined where they are written, instead
+  of surfacing later as a `$ref` into nothing in a published spec.
 
-Planned, in order: navigation from `{Template}` and `@Model` to their
-definitions, gutter icons between the route map and controller methods,
-inspections for dangling references, completion.
+Planned, in order: gutter icons between the route map and controller methods,
+`@security` schemes checked against `getOpenApiSecurityDefinitions()`,
+completion for types, template names and status codes.
+
+One implementation note worth recording: navigation is a `GotoDeclarationHandler`
+rather than a `PsiReference`. `PhpDocTagImpl` declares itself a
+`ContributedReferenceHost` and then overrides `getReferences()` to ignore
+contributed ones — the providers do run, but nothing asks them through the tag,
+so Ctrl+Click sees nothing.
 
 Nothing fires unless the project actually has `Dskripchenko\LaravelApi` on its
 classpath — `@input` and `@output` are ordinary words elsewhere.

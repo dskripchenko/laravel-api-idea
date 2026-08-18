@@ -10,6 +10,7 @@ import com.intellij.psi.PsiElement
 import com.jetbrains.php.lang.documentation.phpdoc.psi.tags.PhpDocTag
 import dev.dskripchenko.laravelapi.LaravelApiProject
 import dev.dskripchenko.laravelapi.markup.DocTagGrammar.Parsed
+import dev.dskripchenko.laravelapi.navigation.TemplateLookup
 
 /**
  * Paints the markup inside the docblock and says so when it does not parse.
@@ -71,15 +72,24 @@ class TagAnnotator : Annotator {
                 }
             }
 
-            is Parsed.ModelRef -> paint(holder, bodyStart, parsed.modelRange, REFERENCE)
+            is Parsed.ModelRef -> {
+                paint(holder, bodyStart, parsed.modelRange, REFERENCE)
+                reportUnknownTemplate(holder, element, bodyStart, parsed.model, parsed.modelRange)
+            }
 
-            is Parsed.TemplateRef -> paint(holder, bodyStart, parsed.templateRange, REFERENCE)
+            is Parsed.TemplateRef -> {
+                paint(holder, bodyStart, parsed.templateRange, REFERENCE)
+                reportUnknownTemplate(holder, element, bodyStart, parsed.template, parsed.templateRange)
+            }
 
             is Parsed.Callable -> paint(holder, bodyStart, parsed.methodRange, REFERENCE)
 
             is Parsed.Response -> {
                 paint(holder, bodyStart, parsed.codeRange, CODE)
-                parsed.templateRange?.let { paint(holder, bodyStart, it, REFERENCE) }
+                parsed.templateRange?.let {
+                    paint(holder, bodyStart, it, REFERENCE)
+                    reportUnknownTemplate(holder, element, bodyStart, parsed.template!!, it)
+                }
 
                 if (parsed.code < 100 || parsed.code > 599) {
                     holder.newAnnotation(HighlightSeverity.ERROR, "${parsed.code} is not an HTTP status code.")
@@ -103,6 +113,31 @@ class TagAnnotator : Annotator {
 
             Parsed.Empty -> Unit
         }
+    }
+
+    /**
+     * A name nothing declares.
+     *
+     * The generator does not complain about it — it writes a `${'$'}ref` at
+     * `#/components/schemas/Whatever` into a spec that still passes validation,
+     * and the break surfaces in whoever generates a client from it.
+     * Underlining it here is the earliest anyone can be told.
+     */
+    private fun reportUnknownTemplate(
+        holder: AnnotationHolder,
+        element: PsiElement,
+        base: Int,
+        name: String,
+        at: IntRange,
+    ) {
+        if (name.isEmpty()) return
+        if (name in TemplateLookup.allNames(element.project)) return
+
+        holder.newAnnotation(
+            HighlightSeverity.ERROR,
+            "Template '$name' is not declared in getOpenApiTemplates() — " +
+                "the generated spec will carry a \$ref pointing at nothing."
+        ).range(range(base, at)).create()
     }
 
     private fun paint(holder: AnnotationHolder, base: Int, at: IntRange, key: TextAttributesKey) {

@@ -21,5 +21,8 @@
         <annotator
             language="PHP"
             implementationClass="dev.dskripchenko.laravelapi.markup.TagAnnotator"/>
+
+        <codeInsight.gotoDeclarationHandler
+            implementation="dev.dskripchenko.laravelapi.navigation.DocGotoDeclarationHandler"/>
     </extensions>
 </idea-plugin>
