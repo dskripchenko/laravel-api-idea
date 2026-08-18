@@ -40,6 +40,7 @@ class V1 extends BaseApi
     public static function getOpenApiTemplates(): array
     {
         return [
+            'TemplateNobodyDeclared' => [],
             'OrderResponse' => [
                 'id' => 'integer!',
                 'title' => 'string!',

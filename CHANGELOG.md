@@ -5,6 +5,27 @@ All notable changes to this plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1]
+
+Two defects found by using the plugin on a real project rather than by running
+its tests. Both are the same shape — a green test over a feature that did not
+work — which is the shape this plugin exists to catch in other people's code.
+
+### Fixed
+
+- **Ctrl+Click did nothing.** The goto handler was registered under
+  `codeInsight.gotoDeclarationHandler`, an extension point that does not exist;
+  the platform never called it. The tests passed because they invoked the
+  handler directly, skipping the dispatch. They now go through
+  `GotoDeclarationAction`, the same path the IDE uses, and were confirmed to
+  fail against the old registration.
+
+- **One gutter arrow per token instead of per action.** `'create'` is three PSI
+  leaves — quote, text, quote — and a marker was created on each. The platform
+  merged them into a single icon whose popup offered the same method three
+  times, two of the entries labelled `'`. The tests checked that an arrow
+  existed and never that there was only one.
+
 ## [0.1.0]
 
 The first release. It covers the two surfaces of
