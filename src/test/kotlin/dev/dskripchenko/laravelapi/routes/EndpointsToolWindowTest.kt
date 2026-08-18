@@ -80,6 +80,40 @@ class EndpointsToolWindowTest : BasePlatformTestCase() {
         assertTrue(EndpointsToolWindowFactory().shouldBeAvailable(project))
     }
 
+    fun `test teaching material from vendor is not an endpoint of this application`() {
+        addProject()
+        // The package ships an example/ directory whose Api classes route
+        // controllers named A and B. Without a filter the endpoint list of a
+        // real project opened with `a.a → a()`.
+        myFixture.addFileToProject(
+            "vendor/dskripchenko/laravel-api/example/Versions/v1/Api.php",
+            """
+            <?php
+            namespace Dskripchenko\LaravelApiExample\Versions\v1;
+            use Dskripchenko\LaravelApi\Components\BaseApi;
+            class Api extends BaseApi
+            {
+                public static function getMethods(): array
+                {
+                    return [
+                        'controllers' => [
+                            'a' => [
+                                'controller' => 'Dskripchenko\\LaravelApiExample\\Controllers\\AController',
+                                'actions' => ['a'],
+                            ],
+                        ],
+                    ];
+                }
+            }
+            """.trimIndent()
+        )
+
+        val labels = RouteMapLookup.allActions(project).map { "${it.controllerKey}.${it.actionKey}" }
+
+        assertTrue("vendor examples must not appear", labels.none { it.startsWith("a.") })
+        assertEquals(setOf("item.list", "item.create"), labels.toSet())
+    }
+
     fun `test it offers every action of the map`() {
         addProject()
 

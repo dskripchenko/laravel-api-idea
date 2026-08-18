@@ -29,7 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **An endpoint list**, in a tool window on the right. The route map is spread
   across the Api classes of every version and panel, and an action key is a
   string, so "where is `print-form.batch` handled" has been a question for grep.
-  Type to filter, double-click to open the method.
+  Type to filter, double-click to open the method. Api classes under `vendor/`
+  are left out: the package itself ships an `example/` directory routing
+  controllers named A, B, C and D, and a list that opens with `a.a → a()` is
+  teaching material presented as the application's own surface.
 
   The window is always registered, and that is a correction rather than a
   preference: availability first asked the PHP index, and the platform decides

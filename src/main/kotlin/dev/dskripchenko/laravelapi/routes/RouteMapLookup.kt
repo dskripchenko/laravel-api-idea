@@ -52,9 +52,19 @@ object RouteMapLookup {
         val anchor: PsiElement,
     )
 
-    /** Every action declared by every Api class in the project. */
+    /**
+     * Every action this application declares.
+     *
+     * Classes under `vendor/` are left out, and that is not tidiness: the
+     * package itself ships an `example/` directory whose Api classes route
+     * controllers named A, B, C and D. Without the filter the endpoint list of
+     * a real project opened with `a.a → a()`, `b.b → b()` and four more like
+     * them — teaching material presented as the application's own surface.
+     */
     fun allActions(project: Project): List<ActionEntry> =
-        apiClasses(project).flatMap { actionsOf(it) }
+        apiClasses(project)
+            .filter { it.containingFile?.virtualFile?.path?.contains("/vendor/") != true }
+            .flatMap { actionsOf(it) }
 
     /** The actions declared by one Api class. */
     fun actionsOf(apiClass: PhpClass): List<ActionEntry> {
