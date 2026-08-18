@@ -70,6 +70,26 @@ so Ctrl+Click sees nothing.
 Nothing fires unless the project actually has `Dskripchenko\LaravelApi` on its
 classpath — `@input` and `@output` are ordinary words elsewhere.
 
+## Which IDEs
+
+Verified with the JetBrains plugin verifier, not assumed:
+
+| IDE | Verdict |
+|---|---|
+| PhpStorm 2025.1 – 2026.2 | compatible |
+| IntelliJ IDEA **Ultimate** | compatible — the PHP plugin has to be installed |
+| IntelliJ IDEA **Community** | will not install |
+
+The whole plugin hangs off the PHP plugin's PSI, so it declares
+`<depends>com.jetbrains.php</depends>` and can only load where that plugin
+exists. JetBrains publishes it for PhpStorm (bundled) and for IDEA Ultimate; for
+Community it does not, and the verifier says so plainly — `com.jetbrains.php`
+cannot be resolved from the bundled plugins or from Marketplace.
+
+Other IDEs that can install the PHP plugin (WebStorm cannot; the rest of the
+family was not checked) would follow the same rule: the plugin loads exactly
+where its dependency does.
+
 ## Building
 
 ```bash

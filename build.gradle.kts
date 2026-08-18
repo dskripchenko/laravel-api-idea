@@ -64,6 +64,17 @@ intellijPlatform {
     pluginVerification {
         ides {
             recommended()
+
+            // IntelliJ IDEA Ultimate is checked explicitly: the plugin depends
+            // on com.jetbrains.php, which IDEA does not bundle but can install,
+            // and "should work there" is not something to tell a user without
+            // having run it.
+            ide(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.IntellijIdeaUltimate, "2025.2")
+
+            // IDEA Community is deliberately absent. The PHP plugin is not
+            // published for it — the verifier reports com.jetbrains.php as
+            // unresolvable there, and always will — so keeping it in the list
+            // would mean a permanently red check on an expected result.
         }
     }
 }
