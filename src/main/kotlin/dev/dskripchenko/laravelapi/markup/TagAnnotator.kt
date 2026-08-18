@@ -141,7 +141,12 @@ class TagAnnotator : Annotator {
             HighlightSeverity.ERROR,
             "Template '$name' is not declared in getOpenApiTemplates() — " +
                 "the generated spec will carry a \$ref pointing at nothing."
-        ).range(range(base, at)).create()
+        )
+            .range(range(base, at))
+            // The name is already written here; retyping it in another file is
+            // where the second, slightly different spelling comes from.
+            .withFix(CreateTemplateFix(name))
+            .create()
     }
 
     /**

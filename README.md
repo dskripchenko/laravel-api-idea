@@ -51,8 +51,15 @@ Early. What works today:
   codes — and, deliberately, of nothing at all once the caret has moved past the
   variable into the description.
 
-Planned: an intention that writes a missing template into
-`getOpenApiTemplates()`, and publication to the JetBrains Marketplace.
+- **A quick fix that declares the missing template.** Alt+Enter on the red name
+  writes `'Name' => []` into `getOpenApiTemplates()` — creating the method too
+  when there is none — with the name taken verbatim from the docblock. Retyping
+  it by hand in another file is where a second, slightly different spelling
+  comes from, and that spelling reads as "declared" to a person and "missing" to
+  the generator. Vendored classes are skipped, and with several API versions the
+  target is asked for rather than guessed.
+
+Planned: publication to the JetBrains Marketplace.
 
 One implementation note worth recording: navigation is a `GotoDeclarationHandler`
 rather than a `PsiReference`. `PhpDocTagImpl` declares itself a
