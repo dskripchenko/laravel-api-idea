@@ -55,8 +55,16 @@ object TemplateLookup {
             .map { it.contents }
             .toSet() + BUILT_IN
 
-    private fun apiClasses(project: Project): Collection<PhpClass> =
-        PhpIndex.getInstance(project).getAllSubclasses(BASE_API)
+    private fun apiClasses(project: Project): Collection<PhpClass> {
+        val found = mutableListOf<PhpClass>()
+
+        // processAllSubclasses rather than getAllSubclasses: the latter is
+        // deprecated for walking the whole hierarchy on every call, and the
+        // plugin verifier says so on every supported IDE build.
+        PhpIndex.getInstance(project).processAllSubclasses(BASE_API) { found += it; true }
+
+        return found
+    }
 
     /**
      * The top-level keys of the array the method returns.

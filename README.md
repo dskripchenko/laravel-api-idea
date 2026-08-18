@@ -33,9 +33,20 @@ Early. What works today:
 - **Templates nobody declared** are underlined where they are written, instead
   of surfacing later as a `$ref` into nothing in a published spec.
 
-Planned, in order: gutter icons between the route map and controller methods,
-`@security` schemes checked against `getOpenApiSecurityDefinitions()`,
-completion for types, template names and status codes.
+- **Gutter arrows both ways** between the route map and the controllers: from
+  an action's key to the method it routes, and from a method back to every
+  action routing it. An action with no arrow points at a method that is not
+  there.
+- **An action pointing at a missing method is an error** — the single defect
+  worth building this for. At runtime it answers 404, the same 404 as a mistyped
+  URL, so nothing distinguishes "this endpoint is gone" from "someone asked for
+  nonsense". A method that exists but is not public, or is static, is reported
+  the same way: `app()->call()` cannot reach it either.
+
+Planned, in order: `@security` schemes checked against
+`getOpenApiSecurityDefinitions()`, completion for types, template names and
+status codes, and an intention that writes the missing template into
+`getOpenApiTemplates()`.
 
 One implementation note worth recording: navigation is a `GotoDeclarationHandler`
 rather than a `PsiReference`. `PhpDocTagImpl` declares itself a
