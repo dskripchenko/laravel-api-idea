@@ -4,6 +4,7 @@ import com.intellij.find.findUsages.FindUsagesHandlerFactory
 import com.intellij.psi.PsiElement
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.usageView.UsageInfo
+import com.intellij.usages.UsageTargetUtil
 
 /**
  * Find Usages on a template declaration, through the platform's own action.
@@ -95,6 +96,47 @@ class TemplateUsagesTest : BasePlatformTestCase() {
         handler.processElementUsages(element, { info: UsageInfo -> found += info.element?.text.orEmpty(); true }, handler.findUsagesOptions)
 
         return found
+    }
+
+    /**
+     * The step the user performs first, and the one that was missing.
+     *
+     * Before any handler is consulted, the platform asks what the caret is on.
+     * A key in an array literal is neither a named element nor a reference
+     * target, so the answer was "nothing" and ⌥F7 replied "Cannot search for
+     * usages from this location" — with a working handler sitting behind it.
+     */
+    fun `test the caret on a declaration is something usages can be found for`() {
+        addProject()
+        configureApiClass()
+
+        val targets = UsageTargetUtil.findUsageTargets(myFixture.editor, myFixture.file)
+
+        assertNotNull("the platform sees nothing to search for", targets)
+        assertTrue("the declaration is not offered as a target", targets!!.isNotEmpty())
+    }
+
+    fun `test a field of a template is not offered as a target`() {
+        addProject()
+        myFixture.configureByText(
+            "V1.php",
+            """
+            <?php
+            namespace App\Api;
+            use Dskripchenko\LaravelApi\Components\BaseApi;
+            class V1 extends BaseApi
+            {
+                public static function getOpenApiTemplates(): array
+                {
+                    return ['UserResponse' => ['<caret>id' => 'integer!']];
+                }
+            }
+            """.trimIndent()
+        )
+
+        val provider = TemplateUsageTargetProvider()
+
+        assertNull(provider.getTargets(myFixture.editor, myFixture.file))
     }
 
     fun `test the declaration finds the docblocks that name it`() {

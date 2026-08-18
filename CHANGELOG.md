@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   references count, and goes through the word index rather than over every file
   in the project.
 
+  Invoking it needs two pieces, and the second is easy to forget: before any
+  handler is consulted the platform asks what the caret is *on*, and a key in an
+  array literal is neither a named element nor a reference target. Without a
+  usage target ⌥F7 answers "Cannot search for usages from this location" with a
+  working search sitting behind it.
+
   A handler rather than references, for the reason recorded in the README:
   `PhpDocTagImpl` calls itself a reference host and then ignores contributed
   references, so nothing inside a docblock can be a reference to anything.

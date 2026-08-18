@@ -109,6 +109,9 @@
             icon="/META-INF/pluginIcon.svg"
             factoryClass="dev.dskripchenko.laravelapi.routes.EndpointsToolWindowFactory"/>
 
+        <usageTargetProvider
+            implementation="dev.dskripchenko.laravelapi.navigation.TemplateUsageTargetProvider"/>
+
         <findUsagesHandlerFactory
             implementation="dev.dskripchenko.laravelapi.navigation.TemplateFindUsagesHandlerFactory"/>
 
