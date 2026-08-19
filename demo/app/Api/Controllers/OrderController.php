@@ -67,4 +67,12 @@ class OrderController extends ApiController
     {
         return $this->success();
     }
+
+    /**
+     * Export
+     */
+    public function exportOrders()
+    {
+        return $this->success();
+    }
 }
