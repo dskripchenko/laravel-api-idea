@@ -5,6 +5,30 @@ All notable changes to this plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Everything since 0.1.1, in one place
+
+Five releases, published one after another so the history stays readable. The
+short version:
+
+- **0.2.0** — every check became an inspection. Severity, suppression and an
+  on/off switch now come from the IDE, which is also why this plugin has no
+  settings screen of its own.
+- **0.3.0** — Find Usages on a response template, an arrow from a declaration to
+  the docblocks naming it, and a searchable list of every endpoint the route map
+  declares.
+- **0.4.0** — `api:lint` runs from the IDE, its findings clickable. The command
+  carries twenty-eight rules against the ten implemented here, and asking the
+  application beats writing the other eighteen twice.
+- **0.5.0** — a quick fix that writes the controller method an action points at,
+  copying only what the neighbours agree on.
+- **0.6.0** — the markup is compared against the validation rules. A field the
+  endpoint validates and the docblock does not mention is reported, with a fix
+  that writes the tag from the rule.
+
+The thread running through all five: the package fails quietly, and so does its
+documentation. Every release here turns one silent disagreement into something
+visible while typing.
+
 ## [0.6.0]
 
 ### Added
