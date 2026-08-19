@@ -17,7 +17,10 @@ plugin catches it while typing.
 
 ## Status
 
-Early. What works today:
+Six releases in, and everything the roadmap opened with is delivered. What the
+plugin does today, grouped by when you meet it.
+
+**While you type**
 
 - **Highlighting** of `@input`, `@output`, `@header`, `@response`, `@security`,
   `@default`, `@example` — types, formats, variables, template references and
@@ -27,50 +30,75 @@ Early. What works today:
   vanishing from the generated spec.
 - **Unknown types** are flagged with the consequence named: the generator will
   call the field `string`.
-- **Navigation**: Ctrl+Click on `{UserResponse}`, `@OrderRequest` or
-  `[buildInputs]` goes to the key in `getOpenApiTemplates()` or to the
-  controller's own method.
+- **Markup checked against the validation rules.** A field the method validates
+  and the docblock never mentions is reported on the rule itself, with a quick
+  fix that writes the tag from it: `email` → `string(email)`, no `required` → an
+  optional field, `in:a,b` → an enumeration, `items.*.variables` →
+  `$items[].variables`. The description is left for a person. Nothing is said
+  about rules assembled at runtime — see the note below.
 - **Templates nobody declared** are underlined where they are written, instead
-  of surfacing later as a `$ref` into nothing in a published spec.
-
-- **Gutter arrows both ways** between the route map and the controllers: from
-  an action's key to the method it routes, and from a method back to every
-  action routing it. An action with no arrow points at a method that is not
-  there.
+  of surfacing later as a `$ref` into nothing in a published spec, with a quick
+  fix that writes `'Name' => []` into `getOpenApiTemplates()` — creating the
+  method too when there is none — with the name taken verbatim from the
+  docblock. Retyping it by hand in another file is where a second, slightly
+  different spelling comes from, and that spelling reads as "declared" to a
+  person and "missing" to the generator.
 - **An action pointing at a missing method is an error** — the single defect
   worth building this for. At runtime it answers 404, the same 404 as a mistyped
   URL, so nothing distinguishes "this endpoint is gone" from "someone asked for
   nonsense". A method that exists but is not public, or is static, is reported
-  the same way: `app()->call()` cannot reach it either.
-
-- **`@security` checked** against `getOpenApiSecurityDefinitions()`, with
-  Ctrl+Click to the declaration. Silent while a project declares no schemes at
-  all: that application has evidently not taken the feature up, and painting
-  every tag red would teach people to look past the plugin rather than at it.
+  the same way: `app()->call()` cannot reach it either. Alt+Enter writes the
+  method, placed and shaped like the ones already in the class.
+- **`@security` checked** against `getOpenApiSecurityDefinitions()`. Silent while
+  a project declares no schemes at all: that application has evidently not taken
+  the feature up, and painting every tag red would teach people to look past the
+  plugin rather than at it.
 - **Completion** of types, formats, template names, security schemes and status
   codes — and, deliberately, of nothing at all once the caret has moved past the
   variable into the description.
 
-- **A quick fix that declares the missing template.** Alt+Enter on the red name
-  writes `'Name' => []` into `getOpenApiTemplates()` — creating the method too
-  when there is none — with the name taken verbatim from the docblock. Retyping
-  it by hand in another file is where a second, slightly different spelling
-  comes from, and that spelling reads as "declared" to a person and "missing" to
-  the generator. Vendored classes are skipped, and with several API versions the
-  target is asked for rather than guessed.
+**Getting around**
 
-What comes next, and in what order, is in [docs/roadmap.md](docs/roadmap.md):
-inspections first (they replace the annotators and bring the settings screen
-with them), then find-usages for templates and an endpoint list, then running
-`api:lint` from the IDE, then generating the markup from validation rules and
-responses — with a hard rule about not guessing when the code cannot be read
-statically.
+- **Navigation**: Ctrl+Click on `{UserResponse}`, `@OrderRequest` or
+  `[buildInputs]` goes to the key in `getOpenApiTemplates()` or to the
+  controller's own method.
+- **Find Usages on a template declaration** lists every docblock naming it, with
+  a gutter arrow from the declaration to them. A template read only by the
+  generator otherwise looks unused to the IDE.
+- **Gutter arrows both ways** between the route map and the controllers: from
+  an action's key to the method it routes, and from a method back to every
+  action routing it. An action with no arrow points at a method that is not
+  there.
+- **An endpoint list** in a tool window — controller, action, HTTP method,
+  searchable, double-click opens the code. The map is spread across classes by
+  design; this is the one place it can be read whole.
 
-One implementation note worth recording: navigation is a `GotoDeclarationHandler`
-rather than a `PsiReference`. `PhpDocTagImpl` declares itself a
-`ContributedReferenceHost` and then overrides `getReferences()` to ignore
-contributed ones — the providers do run, but nothing asks them through the tag,
-so Ctrl+Click sees nothing.
+**On demand**
+
+- **`api:lint` run from the IDE**, its findings clickable. The command carries
+  far more rules than an editor can afford to evaluate on every keystroke, and
+  asking the application is cheaper than writing them twice.
+
+Every check is an ordinary inspection: severity, suppression and the off switch
+live in Settings | Editor | Inspections, under *Laravel API*. The plugin has no
+settings screen of its own, on purpose.
+
+Two implementation notes worth recording.
+
+Navigation is a `GotoDeclarationHandler` rather than a `PsiReference`.
+`PhpDocTagImpl` declares itself a `ContributedReferenceHost` and then overrides
+`getReferences()` to ignore contributed ones — the providers do run, but nothing
+asks them through the tag, so Ctrl+Click sees nothing.
+
+The comparison against validation reads only fully literal rule arrays. A
+`array_merge`, a `Rule::when`, rules pulled from config: the whole array is
+discarded rather than half-read, because a field missing from a partial reading
+looks exactly like a field nobody documented. On the codebases this was built
+against, one method in fifty-three writes its rules that way.
+
+How each of those arrived, release by release, is in
+[docs/roadmap.md](docs/roadmap.md) — including the lessons the platform
+taught the hard way.
 
 Nothing fires unless the project actually has `Dskripchenko\LaravelApi` on its
 classpath — `@input` and `@output` are ordinary words elsewhere.

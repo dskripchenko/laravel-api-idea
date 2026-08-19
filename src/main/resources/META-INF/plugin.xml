@@ -26,10 +26,10 @@
             Running the package's own <code>api:lint</code> over one real application
             turned up 1204 such references at once — a couple of dozen causes, multiplied
             by every resource and every panel. This plugin shows the same thing while
-            typing.
+            typing, and can run that command for you besides.
         </p>
 
-        <h3>What it does</h3>
+        <h3>While you type</h3>
 
         <ul>
             <li><b>Highlights the markup</b> — <code>@input</code>, <code>@output</code>,
@@ -45,27 +45,58 @@
             <li><b>Flags unknown types</b> with the consequence named: the generator will
             call the field <code>string</code>.</li>
 
-            <li><b>Navigates</b> from <code>{TemplateName}</code>, <code>@Model</code>,
-            <code>@security Scheme</code> and <code>@input [method]</code> to their
-            declarations.</li>
+            <li><b>Compares the markup against the validation rules.</b> A field the
+            method validates and the docblock never mentions is reported on the rule
+            itself, with a quick fix that writes the tag from it —
+            <code>email</code> becomes <code>string(email)</code>, a rule that is not
+            <code>required</code> becomes an optional field, <code>in:a,b</code> becomes
+            an enumeration. The description stays for a person to write.</li>
 
             <li><b>Marks dangling references</b> — a template or a security scheme
             nothing declares — and offers a quick fix that declares the template for
             you, creating <code>getOpenApiTemplates()</code> when the class has none,
             with the name taken verbatim from the docblock.</li>
 
+            <li><b>Turns the silent 404 red</b>: an action pointing at a missing,
+            non-public or static method is an error while you type, not a bug report
+            later — and a quick fix writes that method, placed and shaped like the ones
+            already in the class.</li>
+
+            <li><b>Completes</b> types, formats, template names, security schemes and
+            status codes — and, deliberately, nothing at all once the caret has passed
+            the variable into the description.</li>
+        </ul>
+
+        <h3>Getting around</h3>
+
+        <ul>
+            <li><b>Navigates</b> from <code>{TemplateName}</code>, <code>@Model</code>,
+            <code>@security Scheme</code> and <code>@input [method]</code> to their
+            declarations.</li>
+
+            <li><b>Finds usages of a response template</b> — every docblock naming it,
+            through the usual Find Usages, plus a gutter arrow from the declaration to
+            them. A template read only by the generator otherwise looks unused to the
+            IDE.</li>
+
             <li><b>Draws gutter arrows both ways</b> between the route map and the
             controllers: from an action's key to the method it routes, and from a method
             back to every action routing it. An action with no arrow points at a method
             that is not there.</li>
 
-            <li><b>Turns the silent 404 red</b>: an action pointing at a missing,
-            non-public or static method is an error while you type, not a bug report
-            later.</li>
+            <li><b>Lists every endpoint the route map declares</b> in a tool window —
+            controller, action, method, searchable, and a double-click opens the code.
+            The map is spread across classes by design; this is the one place it can be
+            read whole.</li>
+        </ul>
 
-            <li><b>Completes</b> types, formats, template names, security schemes and
-            status codes — and, deliberately, nothing at all once the caret has passed
-            the variable into the description.</li>
+        <h3>On demand</h3>
+
+        <ul>
+            <li><b>Runs <code>api:lint</code></b> from the IDE and makes its findings
+            clickable. The command carries far more rules than an editor can afford to
+            evaluate on every keystroke — asking the application is cheaper than writing
+            them twice.</li>
         </ul>
 
         <h3>Quiet by default</h3>
@@ -76,7 +107,15 @@
             And <code>@security</code> is not policed while a project declares no schemes
             at all — such an application has evidently not taken the feature up, and
             painting every tag red would teach people to look past the plugin rather
-            than at it.
+            than at it. Rules assembled at runtime — from a variable, a merge, a
+            <code>Rule::when</code> — are read by nobody here: a half-read array would
+            report fields that are documented three lines further up.
+        </p>
+
+        <p>
+            Every check is an ordinary inspection, so severity, suppression and the off
+            switch are where you already look for them — Settings | Editor | Inspections,
+            under <i>Laravel API</i>. The plugin has no settings screen of its own.
         </p>
 
         <h3>Requirements</h3>
