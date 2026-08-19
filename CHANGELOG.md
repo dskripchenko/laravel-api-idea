@@ -5,6 +5,51 @@ All notable changes to this plugin are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0]
+
+### Added
+
+- **A field the endpoint validates and the markup does not mention** is now
+  reported, with a quick fix that writes the tag from the rule.
+
+  This is a different failure from a dangling reference, and a harder one to
+  see: both sides are impeccable on their own. The rules are correct, the
+  docblock parses, the generated specification validates — and it describes a
+  different set of fields from the one the endpoint accepts.
+
+  Measured before it was built. Of 52 endpoints across two real applications
+  with both readable rules and a docblock, nine disagreed: a public integration
+  API whose email delivery could not be called from its own documentation, a
+  bulk endpoint documenting `items` while requiring `ids`, six fields of a
+  dashboard layout described nowhere.
+
+  The tag is written from what the rules actually say — `email` →
+  `string(email)`, `nullable` → `?$`, `in:link,b64` → `[link,b64]`,
+  `items.*.variables` → `$items[].variables` — and no description is invented.
+  An empty description is honest; an invented one reads as considered.
+
+### Deliberately absent
+
+- **Generating the markup wholesale from the code**, which is what this release
+  was originally going to be. The measurement said otherwise: rules are readable
+  almost everywhere (one method in fifty-three is not), so generation saves
+  typing where typing was never the problem, while the disagreement between
+  rules and documentation is what nobody was looking at.
+
+- **The reverse direction** — documented and not validated. Checked on the same
+  code: `password_confirmation` comes from the `confirmed` rule, and some fields
+  are validated dynamically against a column. Both are correct documentation,
+  and an inspection that argues with correct documentation is one people switch
+  off.
+
+- **`@output` from the response.** Half of the responses cannot be read at all,
+  their shapes vary more than rules do, and the cost of being wrong is the same:
+  a specification that is confidently mistaken is worse than one that is silent.
+
+- **Demanding a tag for `ids.*`.** An element of a scalar array has no form in
+  this markup — the generator drops such a tag without a word. Asking the author
+  to write a line that vanishes would be worse than asking nothing.
+
 ## [0.5.0]
 
 ### Added

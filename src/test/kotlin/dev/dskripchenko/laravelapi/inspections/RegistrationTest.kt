@@ -21,6 +21,7 @@ class RegistrationTest : BasePlatformTestCase() {
         "UnknownSecurityScheme" to "ERROR",
         "MarkupConsistency" to "WARNING",
         "RouteMap" to "ERROR",
+        "UndocumentedField" to "WARNING",
     )
 
     fun `test every inspection is registered under its own name`() {

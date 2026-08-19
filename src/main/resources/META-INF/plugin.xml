@@ -178,6 +178,15 @@
 
         <localInspection
             language="PHP"
+            shortName="UndocumentedField"
+            displayName="Laravel API: a validated field is not documented"
+            groupName="Laravel API"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="dev.dskripchenko.laravelapi.inspections.UndocumentedFieldInspection"/>
+
+        <localInspection
+            language="PHP"
             shortName="RouteMap"
             displayName="Laravel API: the route map points at nothing"
             groupName="Laravel API"
