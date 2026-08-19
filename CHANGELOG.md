@@ -29,6 +29,21 @@ The thread running through all five: the package fails quietly, and so does its
 documentation. Every release here turns one silent disagreement into something
 visible while typing.
 
+## [0.6.1]
+
+### Changed
+
+- **The plugin page now describes what the plugin does.** Its text had not moved
+  since 0.1.1 and named none of the five releases after it: no find-usages for a
+  response template, no endpoint list, no `api:lint` run from the IDE, no quick
+  fix that writes a missing action method, no comparison against validation
+  rules.
+
+  Nothing in the code changed here. The description is read far more often than
+  it is written, and a stale one costs more than an unreleased feature: someone
+  deciding whether to install this was reading a list from which half of it was
+  missing.
+
 ## [0.6.0]
 
 ### Added
