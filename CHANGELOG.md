@@ -34,22 +34,22 @@ visible while typing.
 ### Added
 
 - **The endpoint list names the version.** A line used to read
-  `print-form.create  →  create()` in an application where two versions declare
-  `print-form`, which is not an endpoint but an ambiguity: the version is the
-  first segment of the URL and the only thing telling the two apart.
+  `order.create  →  create()` in an application where two versions declare an
+  `order` controller, which is not an endpoint but an ambiguity: the version is
+  the first segment of the URL and the only thing telling the two apart.
 
-  It reads `integration.print-form.create  →  create()` now — the name the
-  package already registers the route under (`api.{version}.{controller}.{action}`)
-  with its prefix dropped, so the same spelling works here, in the route list
-  and in a log. An Api class exposed under two versions produces two lines,
-  because two URLs are two endpoints however much code they share.
+  It reads `v2.order.create  →  create()` now — the name the package already
+  registers the route under (`api.{version}.{controller}.{action}`) with its
+  prefix dropped, so the same spelling works here, in the route list and in a
+  log. An Api class exposed under two versions produces two lines, because two
+  URLs are two endpoints however much code they share.
 
   It is read from the module's `getApiVersionList()`, which is where the name
   actually lives — the Api class itself has no idea what it is reached under.
-  Versions a module assembles at runtime, as `AdminApiModule` does for its
-  panels, cannot be read by anything static; those rows keep the old form
-  rather than showing a guessed name, because a column that is sometimes wrong
-  is worse than one that sometimes stops.
+  Versions a module assembles at runtime — in a loop, from a registry, out of
+  configuration — cannot be read by anything static; those rows keep the old
+  form rather than showing a guessed name, because a name that is sometimes
+  wrong is worse than one that sometimes stops short.
 
 - **The PHP interpreter can be set** in Settings | Tools | Laravel API, and
   `api:lint` runs with it.
@@ -231,7 +231,7 @@ visible while typing.
 
 - **An endpoint list**, in a tool window on the right. The route map is spread
   across the Api classes of every version and panel, and an action key is a
-  string, so "where is `print-form.batch` handled" has been a question for grep.
+  string, so "where is `order.batch` handled" has been a question for grep.
   Type to filter, double-click to open the method. Api classes under `vendor/`
   are left out: the package itself ships an `example/` directory routing
   controllers named A, B, C and D, and a list that opens with `a.a → a()` is

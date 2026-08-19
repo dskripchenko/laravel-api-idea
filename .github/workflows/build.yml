@@ -33,6 +33,19 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Тексты для чужих глаз — без нашего контекста
+        # Описание, примечания к версиям и README читают люди, которые про наши
+        # приложения ничего не знают. Имя эндпоинта из закрытого проекта в
+        # примере ничего им не объясняет, а показывает то, что показывать не
+        # собирались. Ловится здесь, потому что заметить это глазами не удалось
+        # четыре релиза подряд.
+        run: |
+          if grep -rniE "print-form|printable|AdminApiModule|laravel-admin|dev-cloud" \
+              CHANGELOG.md README.md src/main/resources/META-INF/plugin.xml; then
+            echo "::error::публичный текст ссылается на конкретный проект — замените пример нейтральным"
+            exit 1
+          fi
+
       - name: Test
         run: ./gradlew test
 

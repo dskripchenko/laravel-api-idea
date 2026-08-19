@@ -69,12 +69,12 @@ plugin does today, grouped by when you meet it.
   an action's key to the method it routes, and from a method back to every
   action routing it. An action with no arrow points at a method that is not
   there.
-- **An endpoint list** in a tool window — `integration.print-form.create →
-  create()`, searchable, double-click opens the code. That is the name the
-  package registers the route under, minus its `api.` prefix. The version comes
-  from the module's `getApiVersionList()`, not from the Api class: without it
-  two versions declaring the same controller produce identical lines. Versions a
-  module builds at runtime (`AdminApiModule` and its panels) cannot be read
+- **An endpoint list** in a tool window — `v2.order.create → create()`,
+  searchable, double-click opens the code. That is the name the package
+  registers the route under, minus its `api.` prefix. The version comes from the
+  module's `getApiVersionList()`, not from the Api class: without it two
+  versions declaring the same controller produce identical lines. Versions a
+  module builds at runtime — in a loop, from a registry — cannot be read
   statically, and those rows say nothing rather than guessing.
 
 **On demand**
