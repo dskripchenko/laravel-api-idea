@@ -50,6 +50,8 @@ object RouteMapLookup {
         val methodName: String,
         val controllerFqn: String?,
         val anchor: PsiElement,
+        /** The Api class this entry was declared in — how a version is named. */
+        val apiFqn: String? = null,
     )
 
     /**
@@ -68,6 +70,7 @@ object RouteMapLookup {
 
     /** The actions declared by one Api class. */
     fun actionsOf(apiClass: PhpClass): List<ActionEntry> {
+        val apiFqn = apiClass.fqn
         val method = apiClass.findOwnMethodByName(METHODS) ?: return emptyList()
         val root = returnedArray(method) ?: return emptyList()
         val controllers = valueOf(root, "controllers") as? ArrayCreationExpression ?: return emptyList()
@@ -78,7 +81,7 @@ object RouteMapLookup {
             val controllerFqn = classFqnOf(valueOf(options, "controller"))
             val actions = valueOf(options, "actions") as? ArrayCreationExpression ?: return@flatMap emptyList()
 
-            parseActions(controllerKey, controllerFqn, actions)
+            parseActions(controllerKey, controllerFqn, actions, apiFqn)
         }
     }
 
@@ -106,6 +109,7 @@ object RouteMapLookup {
         controllerKey: String,
         controllerFqn: String?,
         actions: ArrayCreationExpression,
+        apiFqn: String?,
     ): List<ActionEntry> {
         val result = mutableListOf<ActionEntry>()
 
@@ -116,7 +120,7 @@ object RouteMapLookup {
                 ?.takeIf { it.parent === child || it === child }
                 ?: continue
 
-            result += ActionEntry(controllerKey, literal.contents, literal.contents, controllerFqn, literal)
+            result += ActionEntry(controllerKey, literal.contents, literal.contents, controllerFqn, literal, apiFqn)
         }
 
         for (element in actions.hashElements) {
@@ -130,13 +134,13 @@ object RouteMapLookup {
 
                 // `'show' => 'getById'` — the value is the method's name.
                 is StringLiteralExpression ->
-                    result += ActionEntry(controllerKey, actionKey, value.contents, controllerFqn, key)
+                    result += ActionEntry(controllerKey, actionKey, value.contents, controllerFqn, key, apiFqn)
 
                 // `'create' => ['action' => 'store']` — spelled out; without an
                 // explicit `action` the key is the method's name.
                 is ArrayCreationExpression -> {
                     val explicit = (valueOf(value, "action") as? StringLiteralExpression)?.contents
-                    result += ActionEntry(controllerKey, actionKey, explicit ?: actionKey, controllerFqn, key)
+                    result += ActionEntry(controllerKey, actionKey, explicit ?: actionKey, controllerFqn, key, apiFqn)
                 }
 
                 else -> continue

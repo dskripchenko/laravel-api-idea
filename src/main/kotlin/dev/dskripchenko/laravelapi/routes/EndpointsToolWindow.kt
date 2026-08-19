@@ -138,8 +138,21 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
                 return@nonBlocking emptyList<Row>() to "This project does not use dskripchenko/laravel-api"
             }
 
+            // The version comes from a different place than the actions —
+            // the module, not the Api class — so it is read once per rebuild
+            // rather than per row.
+            val versions = ApiVersionLookup.versionsByApi(project)
+
             val rows = RouteMapLookup.allActions(project)
-                .map { Row("${it.controllerKey}.${it.actionKey}  →  ${it.methodName}()", it) }
+                .flatMap { entry ->
+                    val names = ApiVersionLookup.versionsOf(entry, versions)
+
+                    if (names.isEmpty()) {
+                        listOf(Row(EndpointLabel.of(entry, null), entry))
+                    } else {
+                        names.map { Row(EndpointLabel.of(entry, it), entry) }
+                    }
+                }
                 .sortedBy { it.label }
 
             val note = if (rows.isEmpty()) {

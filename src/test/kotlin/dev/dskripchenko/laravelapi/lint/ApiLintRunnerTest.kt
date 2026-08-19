@@ -1,6 +1,7 @@
 package dev.dskripchenko.laravelapi.lint
 
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import dev.dskripchenko.laravelapi.settings.LaravelApiSettings
 
 /**
  * When running the command is worth offering, and what is said when it is not.
@@ -42,6 +43,29 @@ class ApiLintRunnerTest : BasePlatformTestCase() {
                 "php exists on this machine and was not found: ${result.reason}",
                 result.reason.contains("No `php`"),
             )
+        }
+    }
+
+    /**
+     * A wrong interpreter is not the same failure as no interpreter, and it is
+     * the worse one: running `artisan` under a PHP the project does not support
+     * fails somewhere deep inside the application, with a message about a
+     * syntax error in a vendored file.
+     */
+    fun `test a configured interpreter is refused by name when it cannot be run`() {
+        myFixture.addFileToProject("artisan", "#!/usr/bin/env php")
+        LaravelApiSettings.of(project).phpExecutable = "/nowhere/php8.9"
+
+        try {
+            val result = ApiLintRunner.run(project)
+
+            assertTrue(result is ApiLintRunner.Result.Unavailable)
+            assertTrue(
+                "the reason has to name the path that was configured",
+                (result as ApiLintRunner.Result.Unavailable).reason.contains("/nowhere/php8.9"),
+            )
+        } finally {
+            LaravelApiSettings.of(project).phpExecutable = ""
         }
     }
 

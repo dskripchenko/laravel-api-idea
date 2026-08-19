@@ -69,9 +69,13 @@ plugin does today, grouped by when you meet it.
   an action's key to the method it routes, and from a method back to every
   action routing it. An action with no arrow points at a method that is not
   there.
-- **An endpoint list** in a tool window — controller, action, HTTP method,
-  searchable, double-click opens the code. The map is spread across classes by
-  design; this is the one place it can be read whole.
+- **An endpoint list** in a tool window — `integration.print-form.create →
+  create()`, searchable, double-click opens the code. That is the name the
+  package registers the route under, minus its `api.` prefix. The version comes
+  from the module's `getApiVersionList()`, not from the Api class: without it
+  two versions declaring the same controller produce identical lines. Versions a
+  module builds at runtime (`AdminApiModule` and its panels) cannot be read
+  statically, and those rows say nothing rather than guessing.
 
 **On demand**
 
@@ -80,8 +84,12 @@ plugin does today, grouped by when you meet it.
   asking the application is cheaper than writing them twice.
 
 Every check is an ordinary inspection: severity, suppression and the off switch
-live in Settings | Editor | Inspections, under *Laravel API*. The plugin has no
-settings screen of its own, on purpose.
+live in Settings | Editor | Inspections, under *Laravel API*. The plugin's own
+page, Settings | Tools | Laravel API, carries one field — the PHP interpreter to
+run `api:lint` with. It exists because the PHP plugin does not publish its
+interpreter configuration to other plugins, so "the PHP this project uses" is
+not a question this plugin can ask the IDE. Left empty, it searches the login
+shell's PATH as before.
 
 Two implementation notes worth recording.
 

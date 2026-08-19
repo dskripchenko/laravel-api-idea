@@ -85,9 +85,10 @@
             that is not there.</li>
 
             <li><b>Lists every endpoint the route map declares</b> in a tool window —
-            controller, action, method, searchable, and a double-click opens the code.
-            The map is spread across classes by design; this is the one place it can be
-            read whole.</li>
+            version, controller, action, method, searchable, and a double-click opens
+            the code. The map is spread across classes by design, and the version comes
+            from a third place again — the module — so this is the one place an endpoint
+            can be read whole.</li>
         </ul>
 
         <h3>On demand</h3>
@@ -115,7 +116,10 @@
         <p>
             Every check is an ordinary inspection, so severity, suppression and the off
             switch are where you already look for them — Settings | Editor | Inspections,
-            under <i>Laravel API</i>. The plugin has no settings screen of its own.
+            under <i>Laravel API</i>. The plugin's own settings page carries exactly one
+            field, the PHP interpreter to run <code>api:lint</code> with, and only
+            because the PHP plugin does not publish its interpreter configuration to
+            other plugins.
         </p>
 
         <h3>Requirements</h3>
@@ -147,6 +151,17 @@
             anchor="right"
             icon="/META-INF/pluginIcon.svg"
             factoryClass="dev.dskripchenko.laravelapi.routes.EndpointsToolWindowFactory"/>
+
+        <!--
+            One setting, and only because the PHP plugin keeps its interpreter
+            configuration to itself. Everything else is an inspection and lives
+            under Editor | Inspections.
+        -->
+        <projectConfigurable
+            parentId="tools"
+            id="dev.dskripchenko.laravelapi.settings"
+            displayName="Laravel API"
+            instance="dev.dskripchenko.laravelapi.settings.LaravelApiConfigurable"/>
 
         <usageTargetProvider
             implementation="dev.dskripchenko.laravelapi.navigation.TemplateUsageTargetProvider"/>

@@ -29,6 +29,43 @@ The thread running through all five: the package fails quietly, and so does its
 documentation. Every release here turns one silent disagreement into something
 visible while typing.
 
+## [0.7.0]
+
+### Added
+
+- **The endpoint list names the version.** A line used to read
+  `print-form.create  →  create()` in an application where two versions declare
+  `print-form`, which is not an endpoint but an ambiguity: the version is the
+  first segment of the URL and the only thing telling the two apart.
+
+  It reads `integration.print-form.create  →  create()` now — the name the
+  package already registers the route under (`api.{version}.{controller}.{action}`)
+  with its prefix dropped, so the same spelling works here, in the route list
+  and in a log. An Api class exposed under two versions produces two lines,
+  because two URLs are two endpoints however much code they share.
+
+  It is read from the module's `getApiVersionList()`, which is where the name
+  actually lives — the Api class itself has no idea what it is reached under.
+  Versions a module assembles at runtime, as `AdminApiModule` does for its
+  panels, cannot be read by anything static; those rows keep the old form
+  rather than showing a guessed name, because a column that is sometimes wrong
+  is worse than one that sometimes stops.
+
+- **The PHP interpreter can be set** in Settings | Tools | Laravel API, and
+  `api:lint` runs with it.
+
+  Searching the shell's PATH is right for a machine with one PHP and wrong for
+  every other: a version manager makes "the" interpreter a question about a
+  directory, and the wrong answer fails deep inside the application with a
+  syntax error in a vendored file. The IDE's own interpreter setting is not
+  readable — the PHP plugin does not publish that part of its configuration to
+  other plugins, which is why this is a setting here rather than a lookup.
+
+  A configured path that does not exist, is a directory, or is not executable
+  is refused by name instead of quietly falling back to some other PHP. Left
+  empty, the search behaves exactly as before, and the settings page shows what
+  it currently finds, with the version, so the field is not a guess either.
+
 ## [0.6.2]
 
 ### Fixed
