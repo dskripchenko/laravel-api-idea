@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "dev.dskripchenko"
-version = "0.6.1"
+version = "0.6.2"
 
 repositories {
     mavenCentral()
@@ -42,6 +42,14 @@ dependencies {
 
 kotlin {
     jvmToolchain(21)
+
+    // Without this, implementing a platform interface makes the compiler emit a
+    // delegating override for every default method it has — six of them for
+    // ToolWindowFactory alone. The plugin verifier reads those as us calling
+    // internal, experimental and deprecated API we never wrote a line of.
+    compilerOptions {
+        freeCompilerArgs.add("-jvm-default=no-compatibility")
+    }
 }
 
 intellijPlatform {
@@ -96,6 +104,19 @@ intellijPlatform {
             // unresolvable there, and always will — so keeping it in the list
             // would mean a permanently red check on an expected result.
         }
+
+        // Warnings are what the Marketplace shows next to every uploaded build,
+        // and they went unnoticed for four releases. Internal and experimental
+        // API break without a deprecation cycle, so those fail the check;
+        // deprecated API is listed too, since the only two we ever used were
+        // both accidental.
+        failureLevel = listOf(
+            org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS,
+            org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.INTERNAL_API_USAGES,
+            org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.EXPERIMENTAL_API_USAGES,
+            org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.DEPRECATED_API_USAGES,
+            org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.PLUGIN_STRUCTURE_WARNINGS,
+        )
     }
 }
 

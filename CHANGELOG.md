@@ -29,6 +29,37 @@ The thread running through all five: the package fails quietly, and so does its
 documentation. Every release here turns one silent disagreement into something
 visible while typing.
 
+## [0.6.2]
+
+### Fixed
+
+- **The compatibility check on the plugin page stopped reporting warnings.**
+  Every upload since 0.3.0 carried them: six usages of internal API, six of
+  experimental, four of deprecated — none of which appeared anywhere in the
+  source.
+
+  They came from the compiler. Implementing a platform interface in Kotlin makes
+  it emit a delegating override for every default method that interface has —
+  `getIcon`, `getAnchor`, `manage`, `isApplicable`, `isDoNotActivateOnStart` — and
+  the verifier reads a generated bridge exactly as it reads a hand-written call.
+  Compiling with `-jvm-default=no-compatibility` leaves the class with the two
+  methods it actually declares.
+
+- **The two genuine ones are gone too.** Navigation from a double-click in the
+  endpoint list and in the lint panel resolved its target through
+  `ReadAction.compute`, deprecated in 2026.1, whose Kotlin replacement
+  `runReadAction` is deprecated as well. Both now take the non-blocking path the
+  list itself already used — which is not only current but better mannered:
+  resolving a method touches the index, and that is not work to do between two
+  mouse events.
+
+### Changed
+
+- **The verifier now fails the build on any of this**, rather than reporting it
+  on a page nobody reads until a release is already out. Internal and
+  experimental API break without a deprecation cycle; deprecated API is included
+  because the only two the plugin ever used were both accidental.
+
 ## [0.6.1]
 
 ### Changed

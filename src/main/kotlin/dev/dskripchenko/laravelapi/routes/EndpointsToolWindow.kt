@@ -181,10 +181,9 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
 
         // Resolving the method touches the index, so it happens inside a read
         // action; navigation is a UI act and stays on this thread.
-        val method = ReadAction.compute<Method?, RuntimeException> {
-            RouteMapLookup.targetMethod(project, row.entry)
-        }
-
-        method?.navigate(true)
+        ReadAction.nonBlocking<Method?> { RouteMapLookup.targetMethod(project, row.entry) }
+            .expireWith(this)
+            .finishOnUiThread(ModalityState.defaultModalityState()) { it?.navigate(true) }
+            .submit(AppExecutorUtil.getAppExecutorService())
     }
 }

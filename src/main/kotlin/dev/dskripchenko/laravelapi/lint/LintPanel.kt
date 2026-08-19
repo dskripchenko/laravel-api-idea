@@ -9,6 +9,7 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.jetbrains.php.lang.documentation.phpdoc.psi.PhpDocComment
@@ -125,14 +126,15 @@ class LintPanel(private val project: Project) : JPanel(BorderLayout()), Disposab
     private fun open() {
         val endpoint = list.selectedValue?.finding?.endpoint ?: return
 
-        val target = ReadAction.compute<PhpDocComment?, RuntimeException> {
+        ReadAction.nonBlocking<PhpDocComment?> {
             val entry = RouteMapLookup.allActions(project)
                 .firstOrNull { "${it.controllerKey}.${it.actionKey}" == endpoint }
-                ?: return@compute null
+                ?: return@nonBlocking null
 
             RouteMapLookup.targetMethod(project, entry)?.docComment
         }
-
-        target?.navigate(true)
+            .expireWith(this)
+            .finishOnUiThread(ModalityState.defaultModalityState()) { it?.navigate(true) }
+            .submit(AppExecutorUtil.getAppExecutorService())
     }
 }
