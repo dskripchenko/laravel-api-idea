@@ -111,6 +111,17 @@ taught the hard way.
 Nothing fires unless the project actually has `Dskripchenko\LaravelApi` on its
 classpath — `@input` and `@output` are ordinary words elsewhere.
 
+## Installing
+
+From JetBrains Marketplace — Settings | Plugins | Marketplace, search for
+*Laravel API*.
+
+Or from the archive: every [release](https://github.com/dskripchenko/laravel-api-idea/releases)
+carries `laravel-api-idea-<version>.zip`, and Settings | Plugins | ⚙ | *Install
+Plugin from Disk…* takes it. That is the way in when the IDE cannot reach the
+registry — a closed network — or when a version needs to be rolled back to, which
+the Marketplace does not offer.
+
 ## Which IDEs
 
 Verified with the JetBrains plugin verifier, not assumed:
