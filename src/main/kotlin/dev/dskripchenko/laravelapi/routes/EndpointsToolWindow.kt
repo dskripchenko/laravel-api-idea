@@ -4,6 +4,8 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
@@ -21,6 +23,8 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.JBUI
 import com.jetbrains.php.lang.psi.elements.Method
 import dev.dskripchenko.laravelapi.LaravelApiProject
+import dev.dskripchenko.laravelapi.export.EndpointExporter
+import dev.dskripchenko.laravelapi.export.ExportFormat
 import dev.dskripchenko.laravelapi.lint.LintPanel
 import java.awt.BorderLayout
 import java.awt.event.MouseAdapter
@@ -80,7 +84,12 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
 
     override fun dispose() = Unit
 
-    private data class Row(val label: String, val entry: RouteMapLookup.ActionEntry) {
+    /** [version] is null when no module names the Api class literally. */
+    private data class Row(
+        val label: String,
+        val entry: RouteMapLookup.ActionEntry,
+        val version: String?,
+    ) {
         override fun toString(): String = label
     }
 
@@ -159,9 +168,9 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
                     val names = ApiVersionLookup.versionsOf(entry, versions)
 
                     if (names.isEmpty()) {
-                        listOf(Row(EndpointLabel.of(entry, null), entry))
+                        listOf(Row(EndpointLabel.of(entry, null), entry, null))
                     } else {
-                        names.map { Row(EndpointLabel.of(entry, it), entry) }
+                        names.map { Row(EndpointLabel.of(entry, it), entry, it) }
                     }
                 }
                 .sortedBy { it.label }
@@ -212,6 +221,7 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
 
         val menu = JPopupMenu()
         menu.add(JMenuItem("Open in API documentation").apply { addActionListener { openDocs() } })
+        menu.add(JMenuItem("Export as...").apply { addActionListener { exportRow() } })
         menu.show(event.component, event.x, event.y)
     }
 
@@ -231,7 +241,7 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
                     is EndpointDocs.Result.Links -> {
                         // The list already carries one row per version, so the
                         // row that was clicked names the one that is wanted.
-                        val links = result.links.filter { row.label.startsWith(it.version + ".") }
+                        val links = result.links.filter { it.version == row.version }
                             .ifEmpty { result.links }
 
                         if (links.size == 1) {
@@ -250,6 +260,64 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
                 }
             }
             .submit(AppExecutorUtil.getAppExecutorService())
+    }
+
+    /**
+     * Exports the selected endpoint as a request some client tool reads.
+     *
+     * The command does the producing — the plugin only knows which endpoint was
+     * asked about, which is precisely the part that is tedious to work out from
+     * a terminal.
+     */
+    private fun exportRow() {
+        val row = list.selectedValue ?: return
+        val version = row.version
+
+        if (version == null) {
+            Messages.showInfoMessage(
+                project,
+                "This action has no version to name it by: the module builds its version list at runtime, and " +
+                    "`api:export` takes an endpoint as version.controller.action.",
+                "Nothing to Export",
+            )
+
+            return
+        }
+
+        val endpoint = EndpointExporter.endpointName(version, row.entry.controllerKey, row.entry.actionKey)
+
+        JBPopupFactory.getInstance()
+            .createPopupChooserBuilder(ExportFormat.entries.map { it.label })
+            .setTitle("Export $endpoint As")
+            .setItemChosenCallback { chosen ->
+                val format = ExportFormat.byLabel(chosen) ?: return@setItemChosenCallback
+
+                runExport(endpoint, format, row.entry.httpMethods.singleOrNull())
+            }
+            .createPopup()
+            .showInFocusCenter()
+    }
+
+    private fun runExport(endpoint: String, format: ExportFormat, httpMethod: String?) {
+        object : Task.Backgroundable(project, "Exporting $endpoint", true) {
+            private var result: EndpointExporter.Result? = null
+
+            override fun run(indicator: ProgressIndicator) {
+                result = EndpointExporter.export(project, endpoint, format, httpMethod)
+            }
+
+            override fun onSuccess() {
+                when (val outcome = result) {
+                    is EndpointExporter.Result.Exported ->
+                        EndpointExporter.openInScratch(project, endpoint, format, outcome.content)
+
+                    is EndpointExporter.Result.Failed ->
+                        Messages.showErrorDialog(project, outcome.reason, "api:export Failed")
+
+                    null -> Unit
+                }
+            }
+        }.queue()
     }
 
     /**

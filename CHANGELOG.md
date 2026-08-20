@@ -29,6 +29,30 @@ The thread running through all five: the package fails quietly, and so does its
 documentation. Every release here turns one silent disagreement into something
 visible while typing.
 
+## [0.9.0]
+
+### Added
+
+- **Export the endpoint under the caret as a request.** Right-click a controller
+  method or an action in the route map, pick a format — Bruno, cURL, HTTP
+  Client, Postman, Markdown — and the request opens in a scratch file, ready to
+  send, edit, or save into wherever the collection lives.
+
+  The producing is the application's: this runs `api:export --endpoint`, the
+  same rule `api:lint` established. The docblock-to-OpenAPI pipeline belongs to
+  the package, and a Kotlin copy of it would be a second truth that starts
+  drifting the day either side is touched.
+
+  What the plugin adds is the part that was tedious: knowing which endpoint is
+  meant. Working out that the method under the caret is routed as
+  `v1.order.create` — by which version, under which controller key — is exactly
+  the lookup nobody wants to do in a terminal, and the reason the export was
+  mostly unused.
+
+  The same thing is in the endpoint list's context menu. Requires
+  `dskripchenko/laravel-api` 5.9 or newer, where `--endpoint` and `--stdout`
+  exist.
+
 ## [0.8.0]
 
 ### Added

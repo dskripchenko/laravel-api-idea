@@ -108,6 +108,15 @@
             clickable. The command carries far more rules than an editor can afford to
             evaluate on every keystroke — asking the application is cheaper than writing
             them twice.</li>
+
+            <li><b>Exports the endpoint under the caret as a request</b> — Bruno, cURL,
+            HTTP Client, Postman or Markdown — into a scratch file, ready to send or to
+            save wherever the collection lives. The application produces it; what the
+            plugin contributes is knowing which endpoint is meant, which is the tedious
+            part: that the method under the caret is routed as
+            <code>v1.order.create</code>, by that version and under that controller key,
+            is exactly the lookup nobody wants to do in a terminal. Requires the package
+            at 5.9 or newer.</li>
         </ul>
 
         <h3>Quiet by default</h3>
@@ -271,6 +280,19 @@
     </extensions>
 
     <actions>
+        <!--
+            In the editor's own menu rather than under Tools: it is about the
+            endpoint under the caret, and a menu at the top of the screen is a
+            strange place to ask about one.
+        -->
+        <action
+            id="LaravelApi.ExportEndpoint"
+            class="dev.dskripchenko.laravelapi.export.ExportEndpointAction"
+            text="Export Endpoint As..."
+            description="Export the endpoint under the caret as a Bruno, cURL, HTTP Client or Postman request">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+
         <action
             id="LaravelApi.RunLint"
             class="dev.dskripchenko.laravelapi.lint.RunApiLintAction"
