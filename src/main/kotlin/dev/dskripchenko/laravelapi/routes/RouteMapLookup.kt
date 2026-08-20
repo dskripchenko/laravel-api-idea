@@ -38,6 +38,9 @@ object RouteMapLookup {
     private const val BASE_API = "\\Dskripchenko\\LaravelApi\\Components\\BaseApi"
     private const val METHODS = "getMethods"
 
+    /** What the package routes an action as when the map does not say. */
+    private val DEFAULT_HTTP_METHODS = listOf("post")
+
     /**
      * One routable action.
      *
@@ -52,6 +55,14 @@ object RouteMapLookup {
         val anchor: PsiElement,
         /** The Api class this entry was declared in — how a version is named. */
         val apiFqn: String? = null,
+        /**
+         * The HTTP methods the action answers, lowercase.
+         *
+         * `['post']` when the map says nothing, which is the package's default
+         * and not a guess. An action declaring two is two operations in the
+         * documentation, so the list is kept rather than reduced to a first.
+         */
+        val httpMethods: List<String> = DEFAULT_HTTP_METHODS,
     )
 
     /**
@@ -140,7 +151,15 @@ object RouteMapLookup {
                 // explicit `action` the key is the method's name.
                 is ArrayCreationExpression -> {
                     val explicit = (valueOf(value, "action") as? StringLiteralExpression)?.contents
-                    result += ActionEntry(controllerKey, actionKey, explicit ?: actionKey, controllerFqn, key, apiFqn)
+                    result += ActionEntry(
+                        controllerKey,
+                        actionKey,
+                        explicit ?: actionKey,
+                        controllerFqn,
+                        key,
+                        apiFqn,
+                        httpMethodsOf(value),
+                    )
                 }
 
                 else -> continue
@@ -148,6 +167,27 @@ object RouteMapLookup {
         }
 
         return result
+    }
+
+    /**
+     * `'method' => ['get']`, or `'method' => 'get'` — both are written.
+     *
+     * An empty list is treated as absent, exactly as the package treats it:
+     * `if (!$httpMethods) { $httpMethods = ['post']; }`.
+     */
+    private fun httpMethodsOf(options: ArrayCreationExpression): List<String> {
+        val declared = when (val value = valueOf(options, "method")) {
+            is StringLiteralExpression -> listOf(value.contents)
+
+            is ArrayCreationExpression ->
+                PsiTreeUtil.findChildrenOfType(value, StringLiteralExpression::class.java)
+                    .filter { (it.parent as? ArrayHashElement)?.key !== it }
+                    .map { it.contents }
+
+            else -> emptyList()
+        }
+
+        return declared.map { it.lowercase() }.filter { it.isNotBlank() }.ifEmpty { DEFAULT_HTTP_METHODS }
     }
 
     private fun apiClasses(project: Project): Collection<PhpClass> {

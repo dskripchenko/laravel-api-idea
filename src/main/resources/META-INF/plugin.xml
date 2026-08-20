@@ -84,6 +84,16 @@
             back to every action routing it. An action with no arrow points at a method
             that is not there.</li>
 
+            <li><b>Opens the endpoint's own page in the API reference.</b> The
+            documentation can address a single operation, and nothing outside it
+            could build that address: the version comes from the module, the path
+            from the URI pattern, the tag from the controller key and the method
+            from the route map. A gutter icon on the action and on the method it
+            routes now does it — and appears only where the link will actually
+            work, which is not the case for a version assembled at runtime or one
+            kept out of the reference index. Requires the package at 5.8 or
+            newer.</li>
+
             <li><b>Lists every endpoint the route map declares</b> in a tool window —
             version, controller, action, method, searchable, and a double-click opens
             the code. The map is spread across classes by design, and the version comes
@@ -116,10 +126,12 @@
         <p>
             Every check is an ordinary inspection, so severity, suppression and the off
             switch are where you already look for them — Settings | Editor | Inspections,
-            under <i>Laravel API</i>. The plugin's own settings page carries exactly one
-            field, the PHP interpreter to run <code>api:lint</code> with, and only
-            because the PHP plugin does not publish its interpreter configuration to
-            other plugins.
+            under <i>Laravel API</i>. The plugin's own settings page carries two fields,
+            and both are questions nothing in a repository can answer: the PHP
+            interpreter to run <code>api:lint</code> with, because the PHP plugin does
+            not publish its interpreter configuration to other plugins, and the address
+            the documentation is served from, which is read from <code>APP_URL</code>
+            unless you want a different one.
         </p>
 
         <h3>Requirements</h3>
@@ -176,6 +188,15 @@
         <codeInsight.lineMarkerProvider
             language="PHP"
             implementationClass="dev.dskripchenko.laravelapi.navigation.TemplateLineMarkerProvider"/>
+
+        <!--
+            Its own provider rather than another arrow on the route marker: this
+            one leaves the IDE for a browser, and that is a thing to be able to
+            switch off by itself under Editor | General | Gutter Icons.
+        -->
+        <codeInsight.lineMarkerProvider
+            language="PHP"
+            implementationClass="dev.dskripchenko.laravelapi.routes.DocLinkLineMarkerProvider"/>
 
         <!--
             Inspections rather than annotators: the platform then owns the

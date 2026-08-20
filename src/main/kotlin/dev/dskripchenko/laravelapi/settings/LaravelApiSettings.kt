@@ -33,6 +33,17 @@ class LaravelApiSettings : PersistentStateComponent<LaravelApiSettings.State> {
          */
         @JvmField
         var phpExecutable: String = ""
+
+        /**
+         * Where the reference page lives — `https://api.example.com`, no path.
+         *
+         * Empty means "read `APP_URL` from the project's `.env`", which is
+         * right whenever the documentation is opened against the same
+         * application one is running. It is wrong the moment a reader wants the
+         * staging copy instead, and nothing in the repository can know that.
+         */
+        @JvmField
+        var docsBaseUrl: String = ""
     }
 
     private var state = State()
@@ -47,6 +58,12 @@ class LaravelApiSettings : PersistentStateComponent<LaravelApiSettings.State> {
         get() = state.phpExecutable
         set(value) {
             state.phpExecutable = value.trim()
+        }
+
+    var docsBaseUrl: String
+        get() = state.docsBaseUrl
+        set(value) {
+            state.docsBaseUrl = value.trim().trimEnd('/')
         }
 
     companion object {

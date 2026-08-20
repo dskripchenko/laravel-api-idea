@@ -1,10 +1,13 @@
 package dev.dskripchenko.laravelapi.routes
 
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
@@ -23,7 +26,9 @@ import java.awt.BorderLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.DefaultListModel
+import javax.swing.JMenuItem
 import javax.swing.JPanel
+import javax.swing.JPopupMenu
 import javax.swing.ListSelectionModel
 import javax.swing.event.DocumentEvent
 
@@ -92,6 +97,12 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
                 // Double click, like every other list in the IDE that navigates.
                 if (event.clickCount == 2) open()
             }
+
+            // Both, because which one carries the popup is a platform question:
+            // on macOS it is the press, elsewhere the release.
+            override fun mousePressed(event: MouseEvent) = maybePopup(event)
+
+            override fun mouseReleased(event: MouseEvent) = maybePopup(event)
         })
 
         search.addDocumentListener(object : DocumentAdapter() {
@@ -181,6 +192,64 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
 
         all.filter { query.isEmpty() || it.label.lowercase().contains(query) }
             .forEach(model::addElement)
+    }
+
+    /**
+     * The right-click menu — one item, and it exists because the gutter's icon
+     * cannot explain itself.
+     *
+     * A link that cannot be built shows no icon in the editor, which is right
+     * there and wrong here: this list is where one comes to ask about an
+     * endpoint, and "no menu item" would answer nothing. Here the refusal is
+     * spelled out.
+     */
+    private fun maybePopup(event: MouseEvent) {
+        if (!event.isPopupTrigger) return
+
+        val index = list.locationToIndex(event.point).takeIf { it >= 0 } ?: return
+        if (!list.getCellBounds(index, index).contains(event.point)) return
+        list.selectedIndex = index
+
+        val menu = JPopupMenu()
+        menu.add(JMenuItem("Open in API documentation").apply { addActionListener { openDocs() } })
+        menu.show(event.component, event.x, event.y)
+    }
+
+    /**
+     * Opens the reference page at the selected endpoint, or says why it cannot.
+     */
+    private fun openDocs() {
+        val row = list.selectedValue ?: return
+
+        ReadAction.nonBlocking<EndpointDocs.Result> { EndpointDocs.of(project, row.entry) }
+            .expireWith(this)
+            .finishOnUiThread(ModalityState.defaultModalityState()) { result ->
+                when (result) {
+                    is EndpointDocs.Result.Unavailable ->
+                        Messages.showInfoMessage(project, result.reason, "No Link to the Documentation")
+
+                    is EndpointDocs.Result.Links -> {
+                        // The list already carries one row per version, so the
+                        // row that was clicked names the one that is wanted.
+                        val links = result.links.filter { row.label.startsWith(it.version + ".") }
+                            .ifEmpty { result.links }
+
+                        if (links.size == 1) {
+                            BrowserUtil.browse(links.first().url)
+                        } else {
+                            JBPopupFactory.getInstance()
+                                .createPopupChooserBuilder(links.map { it.label })
+                                .setTitle("Open in API Documentation")
+                                .setItemChosenCallback { chosen ->
+                                    links.firstOrNull { it.label == chosen }?.let { BrowserUtil.browse(it.url) }
+                                }
+                                .createPopup()
+                                .showInFocusCenter()
+                        }
+                    }
+                }
+            }
+            .submit(AppExecutorUtil.getAppExecutorService())
     }
 
     /**

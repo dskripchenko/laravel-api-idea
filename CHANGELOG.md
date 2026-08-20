@@ -29,6 +29,43 @@ The thread running through all five: the package fails quietly, and so does its
 documentation. Every release here turns one silent disagreement into something
 visible while typing.
 
+## [0.8.0]
+
+### Added
+
+- **A way into the API reference from the code that produces it.** The
+  documentation page can address a single operation, and building that address
+  by hand is enough work that nobody does it: the version comes from the module,
+  the path from the URI pattern, the tag from the controller key, the HTTP
+  method from the route map, and the host from the environment. A gutter icon on
+  the action in `getMethods()` and on the controller method it routes now opens
+  exactly that operation.
+
+  The icon appears only where the link will work. A version a module assembles
+  at runtime cannot be named from the source, and a version in `hidden_versions`
+  is never loaded by the page — an anchor into it scrolls to nothing. Both cases
+  draw no icon, and the endpoint list's context menu explains which one it is.
+
+  An action declaring two HTTP methods is two operations, and an Api class
+  exposed under two names is two endpoints; either way the click asks which.
+
+  Requires `dskripchenko/laravel-api` 5.8 or newer, where the page is handed a
+  stable slug per version. Before that release the anchor was derived from the
+  first line of the Api class's docblock, and no link could be built from the
+  outside without reimplementing how that sentence is cleaned up.
+
+- **A second settings field: where the documentation is served from.** Empty
+  means `APP_URL` from the project's `.env`, which is right whenever one reads
+  the documentation of the application one is running. Filling it in points the
+  links at a stand instead — an ordinary thing to want, and nothing in a
+  repository can express it.
+
+### Fixed
+
+- **The route map's `'method' => [...]` is read.** It was ignored entirely,
+  which nothing depended on until an endpoint's HTTP method became part of its
+  address.
+
 ## [0.7.0]
 
 ### Added

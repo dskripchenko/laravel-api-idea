@@ -42,6 +42,21 @@ class LaravelApiConfigurable(private val project: Project) :
             row {
                 comment(detectedNote())
             }
+
+            row("API documentation URL:") {
+                textField()
+                    .bindText(settings::docsBaseUrl)
+                    .comment(
+                        "Where <code>/api/doc</code> is served — <code>https://example.com</code>, host only. " +
+                            "Leave it empty to use <code>APP_URL</code> from the project's <code>.env</code>; " +
+                            "fill it in to read the documentation of a stand while working on a local checkout.",
+                    )
+                    .resizableColumn()
+            }
+
+            row {
+                comment(baseUrlNote())
+            }
         }
     }
 
@@ -62,6 +77,20 @@ class LaravelApiConfigurable(private val project: Project) :
         } else {
             "Found automatically: <code>$detected</code> ($version)"
         }
+    }
+
+    /**
+     * What the empty field would resolve to — the same courtesy as above.
+     *
+     * A person filling this in is deciding between "the .env is fine" and "no,
+     * point it elsewhere", and that decision needs to know what the .env says.
+     */
+    private fun baseUrlNote(): String {
+        val fromEnv = DocsBaseUrl.appUrl(project)
+            ?: return "No <code>APP_URL</code> in the project's <code>.env</code>: without an address here, " +
+                "there is nothing to open."
+
+        return "<code>APP_URL</code> in <code>.env</code>: <code>$fromEnv</code>"
     }
 
     /** `php -v`, first line, trimmed to the version — a sanity check, not a feature. */
