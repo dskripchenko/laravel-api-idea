@@ -1,10 +1,11 @@
 name: Publish
 
-# Публикация по тегу — но не по факту тега: версия в build.gradle.kts должна
-# совпасть с ним. Тег может стоять и на релизе, который в Marketplace не едет.
+# Publishing on a tag — but not on the fact of a tag: the version in
+# build.gradle.kts has to match it. A tag can also sit on a release that is not
+# going to the Marketplace at all.
 #
-# ПЕРВУЮ версию так выложить нельзя: Marketplace принимает её только через
-# веб-форму и проводит ручную модерацию. Этот workflow — для всех последующих.
+# The FIRST version cannot go this way: the Marketplace accepts it only through
+# the web form and moderates it by hand. This workflow is for every one after.
 on:
   push:
     tags: ['v*']
@@ -35,12 +36,13 @@ jobs:
           TAG_VERSION="${GITHUB_REF_NAME#v}"
           PLUGIN_VERSION=$(grep -m1 '^version = ' build.gradle.kts | sed -E 's/.*"(.*)".*/\1/')
           if [ "$TAG_VERSION" != "$PLUGIN_VERSION" ]; then
-            echo "Тег $GITHUB_REF_NAME, а в build.gradle.kts $PLUGIN_VERSION — публиковать нечего."
+            echo "The tag says $GITHUB_REF_NAME and build.gradle.kts says $PLUGIN_VERSION — nothing to publish."
             exit 1
           fi
 
-      # Тег может стоять на коммите, который основной CI не гонял: он ходит по
-      # веткам. В реестр непроверенное не уезжает — оттуда версию не отозвать.
+      # A tag can sit on a commit the main CI never ran: that one walks
+      # branches. Nothing unverified goes to the registry — a version cannot be
+      # taken back from it.
       - name: Test
         run: ./gradlew test
 
@@ -54,3 +56,51 @@ jobs:
           PLUGIN_CERTIFICATE_CHAIN: ${{ secrets.PLUGIN_CERTIFICATE_CHAIN }}
           PLUGIN_PRIVATE_KEY: ${{ secrets.PLUGIN_PRIVATE_KEY }}
           PLUGIN_PRIVATE_KEY_PASSWORD: ${{ secrets.PLUGIN_PRIVATE_KEY_PASSWORD }}
+
+      # The same archive that went to the Marketplace goes into the GitHub
+      # release. Until now a release carried the sources only: installing the
+      # plugin by hand — from a closed network, onto an IDE that cannot reach
+      # the registry, or simply to go back one version — meant building it.
+      - name: Attach the plugin archive to the release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          # The signed one when signing happened: the IDE checks the signature
+          # on a registry install, and handing out a less trusted artifact than
+          # the published one means handing out a different one.
+          ASSET="build/distributions/laravel-api-idea-${VERSION}-signed.zip"
+          [ -f "$ASSET" ] || ASSET="build/distributions/laravel-api-idea-${VERSION}.zip"
+
+          if [ ! -f "$ASSET" ]; then
+            echo "No built archive at $ASSET"
+            exit 1
+          fi
+
+          cp "$ASSET" "laravel-api-idea-${VERSION}.zip"
+
+          # The release is usually already there, made by hand with a title an
+          # automaton would not come up with. If it is not, one is created from
+          # the CHANGELOG so the archive has somewhere to go.
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            python3 - <<'PY' > notes.md
+          import os, re, pathlib
+
+          version = os.environ['GITHUB_REF_NAME'].lstrip('v')
+          lines = pathlib.Path('CHANGELOG.md').read_text(encoding='utf-8').split('\n')
+          heads = [(i, line) for i, line in enumerate(lines) if line.startswith('## ')]
+
+          for index, (start, line) in enumerate(heads):
+              if re.match(r'^## \[?' + re.escape(version) + r'\]?( |$)', line):
+                  end = heads[index + 1][0] if index + 1 < len(heads) else len(lines)
+                  print('\n'.join(lines[start + 1:end]).strip())
+                  break
+          else:
+              raise SystemExit(f'CHANGELOG.md says nothing about {version}')
+          PY
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md
+          fi
+
+          gh release upload "$GITHUB_REF_NAME" "laravel-api-idea-${VERSION}.zip" --clobber

@@ -1,11 +1,11 @@
 name: Verify
 
-# Совместимость с IDE — раз в неделю и по кнопке.
+# Compatibility with the IDEs — weekly, and on demand.
 #
-# Проверка отвечает на вопрос «не сломала ли нас новая версия платформы», а не
-# «не сломали ли мы себя сами»: её ответ меняется от релизов JetBrains, а не от
-# коммитов в этот репозиторий. Гонять её на каждый пуш — это шесть скачанных
-# дистрибутивов IDE ради результата, который не изменился.
+# The check answers "did a new platform release break us", not "did we break
+# ourselves": its answer changes with JetBrains' releases, not with commits to
+# this repository. Running it on every push means six downloaded IDE
+# distributions for a result that has not changed.
 on:
   schedule:
     - cron: '0 6 * * 1'
