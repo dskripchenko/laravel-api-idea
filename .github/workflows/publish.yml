@@ -57,12 +57,45 @@ jobs:
           PLUGIN_PRIVATE_KEY: ${{ secrets.PLUGIN_PRIVATE_KEY }}
           PLUGIN_PRIVATE_KEY_PASSWORD: ${{ secrets.PLUGIN_PRIVATE_KEY_PASSWORD }}
 
-      # The same archive that went to the Marketplace goes into the GitHub
-      # release. Until now a release carried the sources only: installing the
-      # plugin by hand — from a closed network, onto an IDE that cannot reach
-      # the registry, or simply to go back one version — meant building it.
-      - name: Attach the plugin archive to the release
-        if: github.event_name == 'push'
+  # A separate job, and the separation is a correction: the upload used to be
+  # the last step of publishing, so a 403 on it reported as "publishing failed"
+  # when the version was already live in the Marketplace — and re-running to fix
+  # the upload would have tried to publish the same version twice. This one
+  # re-runs on its own. It signs its own copy rather than carrying one over,
+  # since jobs share no workspace and a rebuild from the same tag is the same
+  # artifact.
+  attach:
+    name: Attach the plugin archive to the release
+    needs: publish
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build and sign
+        run: ./gradlew signPlugin
+        env:
+          PLUGIN_CERTIFICATE_CHAIN: ${{ secrets.PLUGIN_CERTIFICATE_CHAIN }}
+          PLUGIN_PRIVATE_KEY: ${{ secrets.PLUGIN_PRIVATE_KEY }}
+          PLUGIN_PRIVATE_KEY_PASSWORD: ${{ secrets.PLUGIN_PRIVATE_KEY_PASSWORD }}
+
+      # Until now a release carried the sources only: installing the plugin by
+      # hand — from a closed network, onto an IDE that cannot reach the
+      # registry, or simply to go back one version — meant building it.
+      - name: Upload it
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
