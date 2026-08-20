@@ -88,11 +88,12 @@
             documentation can address a single operation, and nothing outside it
             could build that address: the version comes from the module, the path
             from the URI pattern, the tag from the controller key and the method
-            from the route map. A gutter icon on the action and on the method it
-            routes now does it — and appears only where the link will actually
-            work, which is not the case for a version assembled at runtime or one
-            kept out of the reference index. Requires the package at 5.8 or
-            newer.</li>
+            from the route map. A line above the controller method says where its
+            documentation is — <code>API docs: v1.GET</code> — and the action in
+            the route map carries a gutter icon to the same place. Both appear
+            only where the link will actually work, which is not the case for a
+            version assembled at runtime or one kept out of the reference index.
+            Requires the package at 5.8 or newer.</li>
 
             <li><b>Lists every endpoint the route map declares</b> in a tool window —
             version, controller, action, method, searchable, and a double-click opens
@@ -199,13 +200,23 @@
             implementationClass="dev.dskripchenko.laravelapi.navigation.TemplateLineMarkerProvider"/>
 
         <!--
-            Its own provider rather than another arrow on the route marker: this
-            one leaves the IDE for a browser, and that is a thing to be able to
-            switch off by itself under Editor | General | Gutter Icons.
+            The route map's end of the documentation link. Its own provider
+            rather than another arrow on the route marker: this one leaves the
+            IDE for a browser, and that is a thing to be able to switch off by
+            itself under Editor | General | Gutter Icons.
         -->
         <codeInsight.lineMarkerProvider
             language="PHP"
             implementationClass="dev.dskripchenko.laravelapi.routes.DocLinkLineMarkerProvider"/>
+
+        <!--
+            The controller's end of it. Code vision rather than a second gutter
+            icon: two icons on one line read as clutter, and this is the place
+            the IDE already puts statements about a declaration — who wrote it,
+            how many usages it has, what implements it.
+        -->
+        <codeInsight.daemonBoundCodeVisionProvider
+            implementation="dev.dskripchenko.laravelapi.routes.DocLinkCodeVisionProvider"/>
 
         <!--
             Inspections rather than annotators: the platform then owns the

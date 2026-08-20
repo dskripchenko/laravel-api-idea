@@ -29,6 +29,22 @@ The thread running through all five: the package fails quietly, and so does its
 documentation. Every release here turns one silent disagreement into something
 visible while typing.
 
+## [0.9.1]
+
+### Changed
+
+- **The documentation link above the controller method, instead of a second
+  gutter icon.** Beside the route arrow it read as clutter rather than as two
+  facts — and an icon can only say "there is something here", while a line can
+  say what: `API docs: integration.GET`. It sits where the IDE already puts
+  statements about a declaration, next to who wrote it and how many usages it
+  has, and it can be switched off on its own under Settings | Editor | Inlay
+  Hints | Code Vision.
+
+  The route map keeps its icon. There the trade goes the other way round:
+  `getMethods()` is an array of action keys and nothing else, so a hint line
+  above each one would double the height of the thing being read.
+
 ## [0.9.0]
 
 ### Added

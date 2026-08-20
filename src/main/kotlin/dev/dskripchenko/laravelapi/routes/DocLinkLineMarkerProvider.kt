@@ -8,13 +8,12 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
-import com.jetbrains.php.lang.psi.elements.Method
 import com.jetbrains.php.lang.psi.elements.PhpClass
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 import dev.dskripchenko.laravelapi.LaravelApiProject
 
 /**
- * A way into the documentation from the code that produces it.
+ * A way into the documentation from the route map.
  *
  * The reference page can address a single operation, and nothing outside it
  * could build that address: the version comes from the module, the path from
@@ -22,6 +21,12 @@ import dev.dskripchenko.laravelapi.LaravelApiProject
  * Assembling those by hand to answer "what does this endpoint look like to
  * whoever consumes it" is enough work that nobody does it, and the docblock
  * gets read instead of the page it renders into.
+ *
+ * Only the map's own action keys, since the controller's side moved to code
+ * vision — a second icon beside the route arrow read as clutter rather than as
+ * two facts. Here the trade goes the other way: `getMethods()` is an array of
+ * action keys and nothing else, so a hint line above each one would double the
+ * height of the thing being read.
  *
  * The icon appears only when a link can actually be built, so its presence
  * means it will work. The cases where it cannot — a version assembled at
@@ -49,16 +54,14 @@ class DocLinkLineMarkerProvider : LineMarkerProvider {
 
         val context = EndpointDocs.context(project) ?: return
 
-        // Read once for the batch. `entriesFor` walks the Api classes of the
-        // whole project, and a file with thirty methods in it would otherwise
-        // pay for thirty of those walks to draw one column of icons.
-        val allEntries = lazy { RouteMapLookup.allActions(project) }
+        // Read once for the batch rather than per leaf, which would pay for one
+        // walk of the project's Api classes per quoted string in the file.
         val actionsByApi = mutableMapOf<PhpClass, List<RouteMapLookup.ActionEntry>>()
 
         for (element in elements) {
             if (element.firstChild != null) continue
 
-            val entries = entriesAt(element, allEntries, actionsByApi)
+            val entries = entriesAt(element, actionsByApi)
             if (entries.isEmpty()) continue
 
             val links = entries.flatMap { EndpointDocs.linksOf(it, context) }.distinctBy { it.url }
@@ -69,24 +72,15 @@ class DocLinkLineMarkerProvider : LineMarkerProvider {
     }
 
     /**
-     * The map entries a leaf stands for — from either end.
+     * The map entry a leaf stands for.
      *
-     * The action's key in `getMethods()`, and the controller method it routes:
-     * both are places one asks the question from, and a link that only worked
-     * on one of them would be remembered as not working.
+     * The action's key in `getMethods()` only — the controller's end of the
+     * same question is answered by the code vision line above the method.
      */
     private fun entriesAt(
         leaf: PsiElement,
-        allEntries: Lazy<List<RouteMapLookup.ActionEntry>>,
         actionsByApi: MutableMap<PhpClass, List<RouteMapLookup.ActionEntry>>,
     ): List<RouteMapLookup.ActionEntry> {
-        (leaf.parent as? Method)?.let { method ->
-            if (leaf.text != method.name) return emptyList()
-            val owner = method.containingClass?.fqn ?: return emptyList()
-
-            return allEntries.value.filter { it.methodName == method.name && it.controllerFqn == owner }
-        }
-
         val literal = leaf.parent as? StringLiteralExpression ?: return emptyList()
 
         // One marker per literal, not per leaf: a quoted string is three tokens.
