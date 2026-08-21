@@ -150,6 +150,11 @@ https://raw.githubusercontent.com/dskripchenko/laravel-api-idea/main/updatePlugi
 every later version shows up as an ordinary update notification. The feed is
 written by CI on each release, so it points at exactly what was published.
 
+> Paste it without a trailing space. The IDE keeps whatever it is given and
+> encodes it, so a stray space becomes `updatePlugins.xml%20`, which is a 404 —
+> reported in the dialog as **Connection failed**, which sends you looking at
+> proxies and networks. The address itself is fine; the space is not part of it.
+
 **Or from the archive**, when a machine may not reach GitHub at all: every
 [release](https://github.com/dskripchenko/laravel-api-idea/releases) carries
 `laravel-api-idea-<version>.zip`, and Settings | Plugins | ⚙ | *Install Plugin
