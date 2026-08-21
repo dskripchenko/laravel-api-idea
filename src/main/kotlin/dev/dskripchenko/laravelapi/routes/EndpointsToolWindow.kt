@@ -1,15 +1,11 @@
 package dev.dskripchenko.laravelapi.routes
 
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
@@ -23,8 +19,6 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.JBUI
 import com.jetbrains.php.lang.psi.elements.Method
 import dev.dskripchenko.laravelapi.LaravelApiProject
-import dev.dskripchenko.laravelapi.export.EndpointExporter
-import dev.dskripchenko.laravelapi.export.ExportFormat
 import dev.dskripchenko.laravelapi.lint.LintPanel
 import java.awt.BorderLayout
 import java.awt.event.MouseAdapter
@@ -220,104 +214,47 @@ private class EndpointsPanel(private val project: Project) : JPanel(BorderLayout
         list.selectedIndex = index
 
         val menu = JPopupMenu()
-        menu.add(JMenuItem("Open in API documentation").apply { addActionListener { openDocs() } })
-        menu.add(JMenuItem("Export as...").apply { addActionListener { exportRow() } })
+        menu.add(JMenuItem("API…").apply { addActionListener { openMenu() } })
         menu.show(event.component, event.x, event.y)
     }
 
     /**
-     * Opens the reference page at the selected endpoint, or says why it cannot.
+     * The same list the editor shows above the method — documentation, and the
+     * endpoint as a request in each format.
+     *
+     * Here, unlike in the editor, an empty list is answered in words. The
+     * editor can afford to show nothing: a line that is not there asks no
+     * question. This window is where one comes to ask about an endpoint, and
+     * silence would answer nothing.
      */
-    private fun openDocs() {
+    private fun openMenu() {
         val row = list.selectedValue ?: return
 
-        ReadAction.nonBlocking<EndpointDocs.Result> { EndpointDocs.of(project, row.entry) }
+        ReadAction.nonBlocking<Pair<List<EndpointMenu.Item>, String?>> {
+            val context = EndpointDocs.context(project)
+            val links = context?.let { EndpointDocs.linksOf(row.entry, it) } ?: emptyList()
+            val targets = listOf(EndpointMenu.Target(row.entry, row.version))
+            val items = EndpointMenu.itemsFor(project, targets, links)
+
+            items to if (items.isEmpty()) refusal(row) else null
+        }
             .expireWith(this)
-            .finishOnUiThread(ModalityState.defaultModalityState()) { result ->
-                when (result) {
-                    is EndpointDocs.Result.Unavailable ->
-                        Messages.showInfoMessage(project, result.reason, "No Link to the Documentation")
-
-                    is EndpointDocs.Result.Links -> {
-                        // The list already carries one row per version, so the
-                        // row that was clicked names the one that is wanted.
-                        val links = result.links.filter { it.version == row.version }
-                            .ifEmpty { result.links }
-
-                        if (links.size == 1) {
-                            BrowserUtil.browse(links.first().url)
-                        } else {
-                            JBPopupFactory.getInstance()
-                                .createPopupChooserBuilder(links.map { it.label })
-                                .setTitle("Open in API Documentation")
-                                .setItemChosenCallback { chosen ->
-                                    links.firstOrNull { it.label == chosen }?.let { BrowserUtil.browse(it.url) }
-                                }
-                                .createPopup()
-                                .showInFocusCenter()
-                        }
-                    }
+            .finishOnUiThread(ModalityState.defaultModalityState()) { (items, refusal) ->
+                if (refusal != null) {
+                    Messages.showInfoMessage(project, refusal, "Nothing to Do With This Endpoint")
+                } else {
+                    EndpointMenu.show(items, "API") { popup -> popup.showInFocusCenter() }
                 }
             }
             .submit(AppExecutorUtil.getAppExecutorService())
     }
 
-    /**
-     * Exports the selected endpoint as a request some client tool reads.
-     *
-     * The command does the producing — the plugin only knows which endpoint was
-     * asked about, which is precisely the part that is tedious to work out from
-     * a terminal.
-     */
-    private fun exportRow() {
-        val row = list.selectedValue ?: return
-        val version = row.version
+    /** Why the list came out empty — each cause is a different fix. */
+    private fun refusal(row: Row): String = when (val docs = EndpointDocs.of(project, row.entry)) {
+        is EndpointDocs.Result.Unavailable -> docs.reason
 
-        if (version == null) {
-            Messages.showInfoMessage(
-                project,
-                "This action has no version to name it by: the module builds its version list at runtime, and " +
-                    "`api:export` takes an endpoint as version.controller.action.",
-                "Nothing to Export",
-            )
-
-            return
-        }
-
-        val endpoint = EndpointExporter.endpointName(version, row.entry.controllerKey, row.entry.actionKey)
-
-        JBPopupFactory.getInstance()
-            .createPopupChooserBuilder(ExportFormat.entries.map { it.label })
-            .setTitle("Export $endpoint As")
-            .setItemChosenCallback { chosen ->
-                val format = ExportFormat.byLabel(chosen) ?: return@setItemChosenCallback
-
-                runExport(endpoint, format, row.entry.httpMethods.singleOrNull())
-            }
-            .createPopup()
-            .showInFocusCenter()
-    }
-
-    private fun runExport(endpoint: String, format: ExportFormat, httpMethod: String?) {
-        object : Task.Backgroundable(project, "Exporting $endpoint", true) {
-            private var result: EndpointExporter.Result? = null
-
-            override fun run(indicator: ProgressIndicator) {
-                result = EndpointExporter.export(project, endpoint, format, httpMethod)
-            }
-
-            override fun onSuccess() {
-                when (val outcome = result) {
-                    is EndpointExporter.Result.Exported ->
-                        EndpointExporter.openInScratch(project, endpoint, format, outcome.content)
-
-                    is EndpointExporter.Result.Failed ->
-                        Messages.showErrorDialog(project, outcome.reason, "api:export Failed")
-
-                    null -> Unit
-                }
-            }
-        }.queue()
+        is EndpointDocs.Result.Links ->
+            "No `artisan` in this project, so there is nothing to export with."
     }
 
     /**

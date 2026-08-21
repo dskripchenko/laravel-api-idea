@@ -3,14 +3,13 @@ package dev.dskripchenko.laravelapi.routes
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.icons.AllIcons
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.editor.markup.GutterIconRenderer
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.php.lang.psi.elements.PhpClass
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 import dev.dskripchenko.laravelapi.LaravelApiProject
+import dev.dskripchenko.laravelapi.lint.Artisan
 
 /**
  * A way into the documentation from the route map.
@@ -52,7 +51,9 @@ class DocLinkLineMarkerProvider : LineMarkerProvider {
         val project = elements.firstOrNull()?.project ?: return
         if (!LaravelApiProject.isEnabled(project)) return
 
-        val context = EndpointDocs.context(project) ?: return
+        val context = EndpointDocs.context(project)
+        val versions = context?.versions ?: ApiVersionLookup.versionsByApi(project)
+        if (context == null && !Artisan.isAvailable(project)) return
 
         // Read once for the batch rather than per leaf, which would pay for one
         // walk of the project's Api classes per quoted string in the file.
@@ -64,10 +65,19 @@ class DocLinkLineMarkerProvider : LineMarkerProvider {
             val entries = entriesAt(element, actionsByApi)
             if (entries.isEmpty()) continue
 
-            val links = entries.flatMap { EndpointDocs.linksOf(it, context) }.distinctBy { it.url }
-            if (links.isEmpty()) continue
+            val links = context?.let { ctx -> entries.flatMap { EndpointDocs.linksOf(it, ctx) }.distinctBy { it.url } }
+                ?: emptyList()
 
-            result.add(markerFor(element, links))
+            val targets = entries.flatMap { entry ->
+                ApiVersionLookup.versionsOf(entry, versions)
+                    .map { EndpointMenu.Target(entry, it) }
+                    .ifEmpty { listOf(EndpointMenu.Target(entry, null)) }
+            }
+
+            val items = EndpointMenu.itemsFor(project, targets, links)
+            if (items.isEmpty()) continue
+
+            result.add(markerFor(element, items))
         }
     }
 
@@ -92,43 +102,18 @@ class DocLinkLineMarkerProvider : LineMarkerProvider {
             .filter { it.anchor === literal }
     }
 
-    private fun markerFor(leaf: PsiElement, links: List<EndpointDocs.Link>): LineMarkerInfo<PsiElement> =
+    private fun markerFor(leaf: PsiElement, items: List<EndpointMenu.Item>): LineMarkerInfo<PsiElement> =
         LineMarkerInfo(
             leaf,
             leaf.textRange,
             AllIcons.General.Web,
-            { tooltipFor(links) },
-            { event, _ -> open(links, event) },
+            { items.joinToString("\n") { item -> item.label } },
+            { event, _ ->
+                EndpointMenu.show(items, "API") { popup ->
+                    popup.show(com.intellij.ui.awt.RelativePoint(event))
+                }
+            },
             GutterIconRenderer.Alignment.RIGHT,
-            { "Open in API documentation" },
+            { "Laravel API" },
         )
-
-    private fun tooltipFor(links: List<EndpointDocs.Link>): String =
-        if (links.size == 1) {
-            "Open in API documentation:\n${links.first().url}"
-        } else {
-            "Open in API documentation:\n" + links.joinToString("\n") { it.label }
-        }
-
-    /**
-     * One link opens; several ask which.
-     *
-     * A version list and an HTTP method list both multiply, and picking one for
-     * the reader would be picking wrong for the other half of them.
-     */
-    private fun open(links: List<EndpointDocs.Link>, event: java.awt.event.MouseEvent) {
-        if (links.size == 1) {
-            BrowserUtil.browse(links.first().url)
-            return
-        }
-
-        JBPopupFactory.getInstance()
-            .createPopupChooserBuilder(links.map { it.label })
-            .setTitle("Open in API Documentation")
-            .setItemChosenCallback { chosen ->
-                links.firstOrNull { it.label == chosen }?.let { BrowserUtil.browse(it.url) }
-            }
-            .createPopup()
-            .show(com.intellij.ui.awt.RelativePoint(event))
-    }
 }

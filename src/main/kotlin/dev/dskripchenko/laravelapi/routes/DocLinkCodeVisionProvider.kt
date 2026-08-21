@@ -5,36 +5,37 @@ import com.intellij.codeInsight.codeVision.CodeVisionEntry
 import com.intellij.codeInsight.codeVision.CodeVisionRelativeOrdering
 import com.intellij.codeInsight.codeVision.ui.model.ClickableTextCodeVisionEntry
 import com.intellij.codeInsight.hints.codeVision.DaemonBoundCodeVisionProvider
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.ui.awt.RelativePoint
 import com.jetbrains.php.lang.psi.PhpFile
 import com.jetbrains.php.lang.psi.elements.Method
-import com.jetbrains.php.lang.psi.elements.PhpClass
-import com.intellij.psi.util.PsiTreeUtil
 import dev.dskripchenko.laravelapi.LaravelApiProject
+import dev.dskripchenko.laravelapi.lint.Artisan
 
 /**
- * A line above the method: where its documentation is.
+ * `API` above the controller method — one line, everything the endpoint offers.
  *
- * It used to be a second icon in the gutter, next to the route arrow, and two
- * icons on one line read as clutter rather than as two facts. Code vision is
- * where the IDE already puts this kind of statement — "written by", "3 usages",
- * "implemented by" — and it can say what the link is instead of leaving the
- * reader to hover an icon and find out.
+ * It was a gutter icon first, next to the route arrow, and two icons on one line
+ * read as clutter rather than as two facts. Then it was a link that opened the
+ * documentation, which left the export reachable only from a context menu
+ * nobody finds. Now it is a label with a list under it: the documentation, and
+ * the endpoint taken away as a request in each format a client tool reads.
  *
- * The route map keeps its gutter icon. A hint line above every action key would
- * double the height of a `getMethods()` array that is nothing but action keys,
- * which is a worse trade than the one being fixed here.
+ * The list holds only what is actually possible, so an absent item is the
+ * answer to "why can I not" — see [EndpointMenu].
+ *
+ * The route map keeps its gutter icon. There the trade goes the other way:
+ * `getMethods()` is an array of action keys and nothing else, so a hint line
+ * above every one of them would double the height of the thing being read.
  */
 class DocLinkCodeVisionProvider : DaemonBoundCodeVisionProvider {
 
     override val id: String get() = ID
 
-    override val name: String get() = "Laravel API documentation"
+    override val name: String get() = "Laravel API"
 
     override val defaultAnchor: CodeVisionAnchorKind get() = CodeVisionAnchorKind.Top
 
@@ -48,10 +49,18 @@ class DocLinkCodeVisionProvider : DaemonBoundCodeVisionProvider {
 
         val methods = PsiTreeUtil.findChildrenOfType(file, Method::class.java).ifEmpty { return emptyList() }
 
-        // Read once for the file: the version map walks every module in the
-        // project, and the address is a file on disk.
-        val context = EndpointDocs.context(file.project) ?: return emptyList()
-        val entries = RouteMapLookup.allActions(file.project)
+        val project = file.project
+
+        // Read once for the file. The version map walks every module in the
+        // project, the address is a file on disk, and `artisan` is a lookup in
+        // the virtual file system — none of it is work to repeat per method.
+        val context = EndpointDocs.context(project)
+        val versions = context?.versions ?: ApiVersionLookup.versionsByApi(project)
+        val exportable = Artisan.isAvailable(project)
+
+        if (context == null && !exportable) return emptyList()
+
+        val entries = RouteMapLookup.allActions(project)
 
         // Only the classes the map points at. A project's models and services
         // outnumber its controllers by an order of magnitude, and every one of
@@ -62,58 +71,48 @@ class DocLinkCodeVisionProvider : DaemonBoundCodeVisionProvider {
             val owner = method.containingClass?.fqn ?: return@mapNotNull null
             if (owner !in routed) return@mapNotNull null
 
-            val links = entries
-                .filter { it.methodName == method.name && it.controllerFqn == owner }
-                .flatMap { EndpointDocs.linksOf(it, context) }
-                .distinctBy { it.url }
-                .ifEmpty { return@mapNotNull null }
+            val mine = entries.filter { it.methodName == method.name && it.controllerFqn == owner }
+            if (mine.isEmpty()) return@mapNotNull null
 
-            method.nameIdentifier?.textRange?.let { range -> range to entryFor(links) }
+            val links = context?.let { ctx -> mine.flatMap { EndpointDocs.linksOf(it, ctx) }.distinctBy { it.url } }
+                ?: emptyList()
+
+            val targets = mine.flatMap { entry ->
+                ApiVersionLookup.versionsOf(entry, versions)
+                    .map { EndpointMenu.Target(entry, it) }
+                    .ifEmpty { listOf(EndpointMenu.Target(entry, null)) }
+            }
+
+            val items = EndpointMenu.itemsFor(project, targets, links)
+            if (items.isEmpty()) return@mapNotNull null
+
+            method.nameIdentifier?.textRange?.let { range -> range to entryFor(items) }
         }
     }
 
-    private fun entryFor(links: List<EndpointDocs.Link>): CodeVisionEntry {
-        val text = if (links.size == 1) {
-            "API docs: ${links.first().version}.${links.first().httpMethod.uppercase()}"
-        } else {
-            "API docs (${links.size})"
-        }
-
-        return ClickableTextCodeVisionEntry(
-            text,
+    private fun entryFor(items: List<EndpointMenu.Item>): CodeVisionEntry =
+        ClickableTextCodeVisionEntry(
+            LABEL,
             ID,
-            { event, _ -> open(links, event) },
+            { event, _ ->
+                EndpointMenu.show(items, "API") { popup ->
+                    if (event != null) popup.show(RelativePoint(event)) else popup.showInFocusCenter()
+                }
+            },
             null,
-            text,
-            links.joinToString("\n") { it.url },
+            LABEL,
+            items.joinToString("\n") { it.label },
             emptyList(),
         )
-    }
-
-    /**
-     * One link opens; several ask which — a version list and an HTTP method
-     * list both multiply, and choosing for the reader is choosing wrong for
-     * half of them.
-     */
-    private fun open(links: List<EndpointDocs.Link>, event: java.awt.event.MouseEvent?) {
-        if (links.size == 1) {
-            BrowserUtil.browse(links.first().url)
-
-            return
-        }
-
-        val popup = JBPopupFactory.getInstance()
-            .createPopupChooserBuilder(links.map { it.label })
-            .setTitle("Open in API Documentation")
-            .setItemChosenCallback { chosen ->
-                links.firstOrNull { it.label == chosen }?.let { BrowserUtil.browse(it.url) }
-            }
-            .createPopup()
-
-        if (event != null) popup.show(RelativePoint(event)) else popup.showInFocusCenter()
-    }
 
     companion object {
         const val ID = "dev.dskripchenko.laravelapi.docLink"
+
+        /**
+         * Deliberately just this. The line sits above every routed method in a
+         * controller, and a longer label repeated forty times reads as noise —
+         * what it leads to is one click away and listed in the tooltip.
+         */
+        const val LABEL = "API"
     }
 }

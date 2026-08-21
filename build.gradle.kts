@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "dev.dskripchenko"
-version = "0.9.1"
+version = "1.0.0"
 
 repositories {
     mavenCentral()

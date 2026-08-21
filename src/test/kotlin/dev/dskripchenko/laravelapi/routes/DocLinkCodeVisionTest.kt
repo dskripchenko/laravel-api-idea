@@ -115,7 +115,8 @@ class DocLinkCodeVisionTest : BasePlatformTestCase() {
 
         return provider.computeForEditor(myFixture.editor, myFixture.file)
             .map { (range, entry) ->
-                myFixture.file.text.substring(range.startOffset, range.endOffset) + " → " + entry.longPresentation
+                // The tooltip is the list; the label is one word by design.
+                myFixture.file.text.substring(range.startOffset, range.endOffset) + " → " + entry.tooltip
             }
     }
 
@@ -128,11 +129,44 @@ class DocLinkCodeVisionTest : BasePlatformTestCase() {
         assertTrue("the hint is not on the routed method: $hints", hints.single().startsWith("contract → "))
     }
 
-    fun `test the line names the version and the method, so it reads without hovering`() {
+    fun `test the line is labelled API and lists what it offers`() {
         addModule("'integration' => V1::class")
 
-        // An icon says "there is something here"; this says what.
-        assertEquals("contract → API docs: integration.GET", hints().single())
+        myFixture.configureByText("TemplateController.php", controller())
+        val entry = provider.computeForEditor(myFixture.editor, myFixture.file).single().second
+
+        // Short because it sits above every routed method in the file; what it
+        // leads to is one click away and in the tooltip.
+        assertEquals("API", (entry as com.intellij.codeInsight.codeVision.ui.model.TextCodeVisionEntry).text)
+        assertEquals("Documentation — integration.GET", entry.tooltip)
+    }
+
+    fun `test the menu carries every export format once the application can be asked`() {
+        addModule("'integration' => V1::class")
+        myFixture.addFileToProject("artisan", "#!/usr/bin/env php")
+
+        val offered = hints().single()
+
+        // Documentation and export are separate capabilities — an address for
+        // one, an application for the other — so each is offered on its own
+        // terms rather than one implying the other.
+        assertTrue("no documentation: $offered", offered.contains("Documentation — integration.GET"))
+        for (format in dev.dskripchenko.laravelapi.export.ExportFormat.entries) {
+            assertTrue("no export as ${format.label}: $offered", offered.contains("Export as ${format.label}"))
+        }
+    }
+
+    fun `test the line appears for export alone, with no address to open`() {
+        LaravelApiSettings.of(project).docsBaseUrl = ""
+        addModule("'integration' => V1::class")
+        myFixture.addFileToProject("artisan", "#!/usr/bin/env php")
+
+        // It used to need a documentation address to appear at all, so a
+        // project without APP_URL got no line and no export either.
+        val offered = hints().single()
+
+        assertFalse("documentation without an address: $offered", offered.contains("Documentation"))
+        assertTrue("no export: $offered", offered.contains("Export as"))
     }
 
     fun `test a class the route map does not point at gets nothing`() {
@@ -165,10 +199,11 @@ class DocLinkCodeVisionTest : BasePlatformTestCase() {
         assertTrue(hints().isEmpty())
     }
 
-    fun `test nothing is shown when there is no address to open`() {
+    fun `test nothing is shown when neither documentation nor export is possible`() {
         LaravelApiSettings.of(project).docsBaseUrl = ""
         addModule("'integration' => V1::class")
 
+        // No address and no artisan: an empty menu is no menu.
         assertTrue(hints().isEmpty())
     }
 

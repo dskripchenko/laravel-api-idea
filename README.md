@@ -17,8 +17,9 @@ plugin catches it while typing.
 
 ## Status
 
-Eleven releases in, and everything the roadmap opened with is delivered. What
-the plugin does today, grouped by when you meet it.
+At 1.0.0, and everything the roadmap opened with is delivered. The public
+surface — the markup grammar, the inspections and their ids, the settings keys —
+is what it will be. What the plugin does today, grouped by when you meet it.
 
 **While you type**
 
@@ -69,13 +70,18 @@ the plugin does today, grouped by when you meet it.
   an action's key to the method it routes, and from a method back to every
   action routing it. An action with no arrow points at a method that is not
   there.
-- **The endpoint's own page in the API reference**, from the code that
-  produces it. A line above the controller method — `API docs: v1.GET` — and a
-  gutter icon on the action in the route map. The address cannot be assembled by
-  hand: the version comes from the module, the path from the URI pattern, the tag
-  from the controller key, the method from the map, the host from `APP_URL`.
-  Shown only where the link will actually work, which excludes a version built at
-  runtime and a version kept out of the reference index.
+- **An `API` line above every routed method**, with everything that endpoint
+  offers under it: its own page in the reference documentation, and the endpoint
+  as a request in Bruno, cURL, HTTP Client, Postman or Markdown. The gutter icon
+  on the route map's action key opens the same list.
+
+  Neither half can be assembled by hand. The documentation address comes from
+  four places at once — the version from the module, the path from the URI
+  pattern, the tag from the controller key, the method from the map — and the
+  request can only be produced by the application. The list holds what is
+  actually possible, so a missing item is the answer to why: a version built at
+  runtime has no address, one kept out of the reference index is never loaded by
+  the page, a project without `artisan` has nothing to export with.
 - **An endpoint list** in a tool window — `v2.order.create → create()`,
   searchable, double-click opens the code. That is the name the package
   registers the route under, minus its `api.` prefix. The version comes from the
@@ -89,12 +95,12 @@ the plugin does today, grouped by when you meet it.
 - **`api:lint` run from the IDE**, its findings clickable. The command carries
   far more rules than an editor can afford to evaluate on every keystroke, and
   asking the application is cheaper than writing them twice.
-- **The endpoint under the caret exported as a request** — Bruno, cURL, HTTP
-  Client, Postman or Markdown — into a scratch file, ready to send or to save
-  where the collection lives. The application produces it; what the plugin adds
-  is knowing which endpoint is meant, which is the tedious half: that the method
-  under the caret is routed as `v1.order.create`, by that version and under that
-  controller key.
+- **The endpoint under the caret exported as a request**, the same as the `API`
+  line does, for anyone who reaches for the context menu instead. It opens in a
+  scratch file, ready to send or to save where the collection lives. The
+  application produces it through `api:export`; what the plugin adds is knowing
+  which endpoint is meant — that the method under the caret is routed as
+  `v1.order.create`, by that version and under that controller key.
 
 Every check is an ordinary inspection: severity, suppression and the off switch
 live in Settings | Editor | Inspections, under *Laravel API*. The plugin's own

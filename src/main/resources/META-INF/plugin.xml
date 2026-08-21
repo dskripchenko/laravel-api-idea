@@ -84,16 +84,17 @@
             back to every action routing it. An action with no arrow points at a method
             that is not there.</li>
 
-            <li><b>Opens the endpoint's own page in the API reference.</b> The
-            documentation can address a single operation, and nothing outside it
-            could build that address: the version comes from the module, the path
-            from the URI pattern, the tag from the controller key and the method
-            from the route map. A line above the controller method says where its
-            documentation is — <code>API docs: v1.GET</code> — and the action in
-            the route map carries a gutter icon to the same place. Both appear
-            only where the link will actually work, which is not the case for a
-            version assembled at runtime or one kept out of the reference index.
-            Requires the package at 5.8 or newer.</li>
+            <li><b>An <code>API</code> line above every routed method</b>, with
+            everything that endpoint offers under it: its own page in the reference
+            documentation, and the endpoint itself as a request in Bruno, cURL,
+            HTTP Client, Postman or Markdown. The action in the route map carries a
+            gutter icon to the same list. Nothing outside the package could build
+            that documentation address — the version comes from the module, the path
+            from the URI pattern, the tag from the controller key, the method from
+            the route map — and nothing but the application can produce the request.
+            The list holds only what is actually possible, so a missing item is the
+            answer to "why can I not": a version assembled at runtime has no
+            address, a project without <code>artisan</code> has no export.</li>
 
             <li><b>Lists every endpoint the route map declares</b> in a tool window —
             version, controller, action, method, searchable, and a double-click opens
@@ -110,14 +111,13 @@
             evaluate on every keystroke — asking the application is cheaper than writing
             them twice.</li>
 
-            <li><b>Exports the endpoint under the caret as a request</b> — Bruno, cURL,
-            HTTP Client, Postman or Markdown — into a scratch file, ready to send or to
-            save wherever the collection lives. The application produces it; what the
-            plugin contributes is knowing which endpoint is meant, which is the tedious
-            part: that the method under the caret is routed as
-            <code>v1.order.create</code>, by that version and under that controller key,
-            is exactly the lookup nobody wants to do in a terminal. Requires the package
-            at 5.9 or newer.</li>
+            <li><b>Exports the endpoint under the caret as a request</b>, the same as
+            the <code>API</code> line does, for anyone who reaches for the context menu
+            instead. The application produces it through <code>api:export</code>; what
+            the plugin contributes is knowing which endpoint is meant — that the method
+            under the caret is routed as <code>v1.order.create</code>, by that version
+            and under that controller key, is exactly the lookup nobody wants to do in a
+            terminal. Requires the package at 5.9 or newer.</li>
         </ul>
 
         <h3>Quiet by default</h3>

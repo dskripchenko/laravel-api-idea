@@ -29,6 +29,42 @@ The thread running through all five: the package fails quietly, and so does its
 documentation. Every release here turns one silent disagreement into something
 visible while typing.
 
+## [1.0.0]
+
+Eleven releases of finding out what this plugin is for, and the answer settled:
+it makes the two things the package keeps in separate files — the docblock
+markup and the route map — visible as one endpoint, while you type.
+
+Nothing in the public surface is expected to change now, which is what the
+number says. The markup grammar, the inspections and their ids, the settings
+keys and the `API` line are what they will be.
+
+### Added
+
+- **One `API` line above each routed method, with everything the endpoint
+  offers under it.** Its page in the reference documentation, and the endpoint
+  itself as a request in each format `api:export` produces — Bruno, cURL, HTTP
+  Client, Postman, Markdown. The gutter icon on the route map's action key opens
+  the same list.
+
+  Before this the two halves lived apart: a link that opened documentation, and
+  an export buried in the editor's context menu where nobody found it. One
+  subject, one place.
+
+### Changed
+
+- **The line appears when *either* half is possible, not only both.** It used to
+  need a documentation address, so a project without `APP_URL` got no line — and
+  with it no export, which never needed an address in the first place. The list
+  now holds what is actually available, and an item that is missing is the answer
+  to why: a version a module assembles at runtime cannot be addressed, a version
+  in `hidden_versions` is never loaded by the page, a project without `artisan`
+  has nothing to export with.
+
+- **The label is `API` rather than `API docs: v1.GET`.** It sits above every
+  routed method in a controller, and forty repetitions of a long label read as
+  noise. What it leads to is one click away, and in the tooltip without one.
+
 ## [0.9.1]
 
 ### Changed
