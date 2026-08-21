@@ -5,11 +5,19 @@
   Add it once in Settings | Plugins | ⚙ | Manage Plugin Repositories:
   https://raw.githubusercontent.com/dskripchenko/laravel-api-idea/main/updatePlugins.xml
 
-  Written by CI on every release. Editing it by hand only moves the
-  pointer away from what was actually published.
+  Written by CI on every release. Editing it by hand only moves the pointer
+  away from what was actually published.
+
+  `name` and `vendor` are not decoration: the plugin list has nothing to draw
+  or to match a search against without them, so an entry carrying only an id
+  loads without error and stays invisible.
 -->
 <plugins>
   <plugin id="dev.dskripchenko.laravel-api" url="https://github.com/dskripchenko/laravel-api-idea/releases/download/v1.0.0/laravel-api-idea-1.0.0.zip" version="1.0.0">
+    <name>Laravel API</name>
+    <description>IDE support for dskripchenko/laravel-api — the docblock markup its OpenAPI generator reads, and the route map its getMethods() declares.</description>
+    <vendor email="denskrp90@gmail.com" url="https://github.com/dskripchenko">Denis Skripchenko</vendor>
+    <depends>com.jetbrains.php</depends>
     <idea-version since-build="251"/>
   </plugin>
 </plugins>

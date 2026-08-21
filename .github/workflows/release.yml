@@ -149,13 +149,25 @@ jobs:
 
             Written by CI on every release. Editing it by hand only moves the
             pointer away from what was actually published.
+
+            \`name\` and \`vendor\` are not decoration: the plugin list has
+            nothing to draw or to match a search against without them, so an
+            entry carrying only an id loads without error and stays invisible.
           -->
           <plugins>
             <plugin id="dev.dskripchenko.laravel-api" url="${URL}" version="${VERSION}">
+              <name>Laravel API</name>
+              <description>IDE support for dskripchenko/laravel-api — the docblock markup its OpenAPI generator reads, and the route map its getMethods() declares.</description>
+              <vendor email="denskrp90@gmail.com" url="https://github.com/dskripchenko">Denis Skripchenko</vendor>
+              <depends>com.jetbrains.php</depends>
               <idea-version since-build="${SINCE}"/>
             </plugin>
           </plugins>
           XML
+
+          # A feed the IDE cannot parse is a feed nobody can install from, and
+          # the failure is silent — it simply lists nothing.
+          python3 -c "import xml.dom.minidom,sys; xml.dom.minidom.parse('updatePlugins.xml')" 
 
           # Rebuilt rather than appended: a release edited or deleted by
           # hand should show up in the table too.
