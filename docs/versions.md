@@ -11,6 +11,7 @@ newest, so a downgrade has to be explicit.
 
 | Version | Date | IDEs | What it brought | |
 |---|---|---|---|---|
+| **1.0.0** | 2026-08-21 | 2025.1+ | one API line, everything the endpoint offers | [zip](https://github.com/dskripchenko/laravel-api-idea/releases/download/v1.0.0/laravel-api-idea-1.0.0.zip) · [notes](https://github.com/dskripchenko/laravel-api-idea/releases/tag/v1.0.0) |
 | **0.9.1** | 2026-08-20 | 2025.1+ | the documentation link reads instead of pointing | [zip](https://github.com/dskripchenko/laravel-api-idea/releases/download/v0.9.1/laravel-api-idea-0.9.1.zip) · [notes](https://github.com/dskripchenko/laravel-api-idea/releases/tag/v0.9.1) |
 | **0.9.0** | 2026-08-20 | 2025.1+ | exporting the endpoint under the caret | [zip](https://github.com/dskripchenko/laravel-api-idea/releases/download/v0.9.0/laravel-api-idea-0.9.0.zip) · [notes](https://github.com/dskripchenko/laravel-api-idea/releases/tag/v0.9.0) |
 | **0.8.0** | 2026-08-20 | 2025.1+ | the endpoint's own page in the reference | [zip](https://github.com/dskripchenko/laravel-api-idea/releases/download/v0.8.0/laravel-api-idea-0.8.0.zip) · [notes](https://github.com/dskripchenko/laravel-api-idea/releases/tag/v0.8.0) |

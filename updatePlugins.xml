@@ -5,11 +5,11 @@
   Add it once in Settings | Plugins | ⚙ | Manage Plugin Repositories:
   https://raw.githubusercontent.com/dskripchenko/laravel-api-idea/main/updatePlugins.xml
 
-  Written by CI on every release. Editing it by hand only moves the pointer
-  away from what was actually published.
+  Written by CI on every release. Editing it by hand only moves the
+  pointer away from what was actually published.
 -->
 <plugins>
-  <plugin id="dev.dskripchenko.laravel-api" url="https://github.com/dskripchenko/laravel-api-idea/releases/download/v0.9.1/laravel-api-idea-0.9.1.zip" version="0.9.1">
+  <plugin id="dev.dskripchenko.laravel-api" url="https://github.com/dskripchenko/laravel-api-idea/releases/download/v1.0.0/laravel-api-idea-1.0.0.zip" version="1.0.0">
     <idea-version since-build="251"/>
   </plugin>
 </plugins>
