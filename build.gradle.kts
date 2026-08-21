@@ -97,7 +97,15 @@ intellijPlatform {
             // on com.jetbrains.php, which IDEA does not bundle but can install,
             // and "should work there" is not something to tell a user without
             // having run it.
+            //
+            // Both ends of the supported range, and the newer one is here
+            // because the Marketplace found an IDEA branch this list did not
+            // cover: `recommended()` follows PhpStorm, so IDEA 2026.2 was
+            // unchecked here while being checked there. Releases rather than
+            // EAP snapshots — a pinned snapshot goes stale within weeks, and
+            // the branch is what the problems belong to.
             ide(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.IntellijIdeaUltimate, "2025.2")
+            ide(org.jetbrains.intellij.platform.gradle.IntelliJPlatformType.IntellijIdeaUltimate, "2026.2")
 
             // IDEA Community is deliberately absent. The PHP plugin is not
             // published for it — the verifier reports com.jetbrains.php as
