@@ -17,8 +17,8 @@ plugin catches it while typing.
 
 ## Status
 
-Six releases in, and everything the roadmap opened with is delivered. What the
-plugin does today, grouped by when you meet it.
+Eleven releases in, and everything the roadmap opened with is delivered. What
+the plugin does today, grouped by when you meet it.
 
 **While you type**
 
@@ -69,6 +69,13 @@ plugin does today, grouped by when you meet it.
   an action's key to the method it routes, and from a method back to every
   action routing it. An action with no arrow points at a method that is not
   there.
+- **The endpoint's own page in the API reference**, from the code that
+  produces it. A line above the controller method — `API docs: v1.GET` — and a
+  gutter icon on the action in the route map. The address cannot be assembled by
+  hand: the version comes from the module, the path from the URI pattern, the tag
+  from the controller key, the method from the map, the host from `APP_URL`.
+  Shown only where the link will actually work, which excludes a version built at
+  runtime and a version kept out of the reference index.
 - **An endpoint list** in a tool window — `v2.order.create → create()`,
   searchable, double-click opens the code. That is the name the package
   registers the route under, minus its `api.` prefix. The version comes from the
@@ -82,14 +89,21 @@ plugin does today, grouped by when you meet it.
 - **`api:lint` run from the IDE**, its findings clickable. The command carries
   far more rules than an editor can afford to evaluate on every keystroke, and
   asking the application is cheaper than writing them twice.
+- **The endpoint under the caret exported as a request** — Bruno, cURL, HTTP
+  Client, Postman or Markdown — into a scratch file, ready to send or to save
+  where the collection lives. The application produces it; what the plugin adds
+  is knowing which endpoint is meant, which is the tedious half: that the method
+  under the caret is routed as `v1.order.create`, by that version and under that
+  controller key.
 
 Every check is an ordinary inspection: severity, suppression and the off switch
 live in Settings | Editor | Inspections, under *Laravel API*. The plugin's own
-page, Settings | Tools | Laravel API, carries one field — the PHP interpreter to
-run `api:lint` with. It exists because the PHP plugin does not publish its
-interpreter configuration to other plugins, so "the PHP this project uses" is
-not a question this plugin can ask the IDE. Left empty, it searches the login
-shell's PATH as before.
+page, Settings | Tools | Laravel API, carries two fields, and both are questions
+nothing in a repository can answer: the PHP interpreter to run `api:lint` with —
+the PHP plugin does not publish its interpreter configuration to other plugins,
+so "the PHP this project uses" is not a question this plugin can ask the IDE —
+and the address the documentation is served from, read from `APP_URL` unless a
+different one is wanted.
 
 Two implementation notes worth recording.
 
@@ -113,14 +127,28 @@ classpath — `@input` and `@output` are ordinary words elsewhere.
 
 ## Installing
 
-From JetBrains Marketplace — Settings | Plugins | Marketplace, search for
-*Laravel API*.
+The plugin is distributed from this repository. It is not on JetBrains
+Marketplace: publication there was refused to the author, over where he once
+worked rather than over anything in the code, and the refusal is final. Nothing
+about the plugin changes because of it — but the two steps below replace the one
+step the Marketplace would have been.
 
-Or from the archive: every [release](https://github.com/dskripchenko/laravel-api-idea/releases)
-carries `laravel-api-idea-<version>.zip`, and Settings | Plugins | ⚙ | *Install
-Plugin from Disk…* takes it. That is the way in when the IDE cannot reach the
-registry — a closed network — or when a version needs to be rolled back to, which
-the Marketplace does not offer.
+**As a plugin repository — recommended, because updates keep arriving.**
+Settings | Plugins | ⚙ | *Manage Plugin Repositories…* | **+**, and paste:
+
+```
+https://raw.githubusercontent.com/dskripchenko/laravel-api-idea/main/updatePlugins.xml
+```
+
+*Laravel API* then appears in the Marketplace tab and installs from there, and
+every later version shows up as an ordinary update notification. The feed is
+written by CI on each release, so it points at exactly what was published.
+
+**Or from the archive**, when a machine may not reach GitHub at all: every
+[release](https://github.com/dskripchenko/laravel-api-idea/releases) carries
+`laravel-api-idea-<version>.zip`, and Settings | Plugins | ⚙ | *Install Plugin
+from Disk…* takes it. This is also how to go back a version — an update feed
+only ever offers the newest.
 
 ## Which IDEs
 
@@ -165,37 +193,34 @@ checked: the verifier reports PS-251 as compatible, so the lower bound is real
 rather than hopeful. Gradle warns about the pair; the warning is the price of a
 supported range wider than the build target.
 
-## Publishing
+## Releasing
 
-The first version cannot be published from here: JetBrains Marketplace accepts
-it only through the web form and reviews it by hand. Everything after that goes
-by tag.
+Everything goes by tag, and the tag is the only trigger: `release.yml` checks
+that the tag and the version in `build.gradle.kts` agree — a tag may well sit on
+a commit that is not meant to be a release — then runs the tests and the IDE
+verifier, builds and signs the archive, publishes the release, and rewrites
+`updatePlugins.xml` to point at it.
 
-```bash
-./gradlew publishPlugin        # needs JETBRAINS_MARKETPLACE_TOKEN
-```
+The order matters. A tag can point at a commit the branch CI never saw, and a
+release can be deleted but not un-downloaded.
 
-CI is split by what a check actually answers: `build.yml` runs the tests on
-every push, while `verify.yml` runs the IDE-compatibility verifier weekly and on
-demand. The split is measured rather than guessed — with the verifier inline a
-push took 13.5 minutes, of which 6.5 went on downloading six IDE distributions
-and three more on storing the cache they left behind. Its answer changes when
-JetBrains ships a platform release, not when this repository gets a commit.
+CI is otherwise split by what a check actually answers: `build.yml` runs the
+tests on every push, while `verify.yml` runs the IDE-compatibility verifier
+weekly and on demand. The split is measured rather than guessed — with the
+verifier inline a push took 13.5 minutes, of which 6.5 went on downloading six
+IDE distributions and three more on storing the cache they left behind. Its
+answer changes when JetBrains ships a platform release, not when this repository
+gets a commit.
 
-`.github/workflows/publish.yml` does the same on `v*` tags, after checking that
-the tag and the version in `build.gradle.kts` agree — a tag may well sit on a
-release that is not meant for the registry. It runs the tests and the verifier
-first: a tag can point at a commit the branch CI never saw, and a version cannot
-be withdrawn from the registry once published.
+Signing is what a registry would otherwise vouch for, so outside one it matters
+more, not less: `PLUGIN_CERTIFICATE_CHAIN` / `PLUGIN_PRIVATE_KEY` /
+`PLUGIN_PRIVATE_KEY_PASSWORD` let a downloaded archive be proven to have left
+this machine untampered. Without them the signing task has nothing to do and an
+unsigned archive is published instead.
 
-Signing is optional. Marketplace signs unsigned uploads itself; the
-`PLUGIN_CERTIFICATE_CHAIN` / `PLUGIN_PRIVATE_KEY` / `PLUGIN_PRIVATE_KEY_PASSWORD`
-variables exist so that the archive can be proven to have left this machine
-untampered. Without them the signing task simply has nothing to do.
-
-The change notes on the listing come from `CHANGELOG.md` — the section matching
-the version being built. Releasing a version the changelog does not mention
-fails the build rather than publishing an empty "what's new".
+The release notes come from `CHANGELOG.md` — the section matching the version
+being built. Tagging a version the changelog does not mention fails the build
+rather than publishing an empty "what's new".
 
 ## License
 

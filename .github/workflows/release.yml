@@ -1,0 +1,152 @@
+name: Release
+
+# A tagged version, built and published here — this repository is the
+# distribution channel.
+#
+# It used to go to JetBrains Marketplace. That door is closed to this author for
+# reasons that have nothing to do with the code and cannot be appealed, so the
+# plugin is distributed from its own releases instead. Everything the Marketplace
+# did for a user, this has to do explicitly: build the archive, sign it, publish
+# it with its notes, and keep an update feed so an installed plugin still learns
+# that a new version exists.
+#
+# Publishing on a tag, but not on the fact of a tag: the version in
+# build.gradle.kts has to match it.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency: release
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build, verify and publish the release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The update feed is committed back to the default branch, and a
+          # tagged checkout is detached from it.
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Check the tag against the version
+        if: github.event_name == 'push'
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PLUGIN_VERSION=$(grep -m1 '^version = ' build.gradle.kts | sed -E 's/.*"(.*)".*/\1/')
+          if [ "$TAG_VERSION" != "$PLUGIN_VERSION" ]; then
+            echo "The tag says $GITHUB_REF_NAME and build.gradle.kts says $PLUGIN_VERSION — nothing to release."
+            exit 1
+          fi
+
+      # A tag can sit on a commit the main CI never ran: that one walks
+      # branches. Nothing unverified is handed to anybody — a release can be
+      # deleted, but not un-downloaded.
+      - name: Test
+        run: ./gradlew test
+
+      - name: Verify against supported IDEs
+        run: ./gradlew verifyPlugin
+
+      - name: Build and sign
+        run: ./gradlew signPlugin
+        env:
+          PLUGIN_CERTIFICATE_CHAIN: ${{ secrets.PLUGIN_CERTIFICATE_CHAIN }}
+          PLUGIN_PRIVATE_KEY: ${{ secrets.PLUGIN_PRIVATE_KEY }}
+          PLUGIN_PRIVATE_KEY_PASSWORD: ${{ secrets.PLUGIN_PRIVATE_KEY_PASSWORD }}
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          ASSET="build/distributions/laravel-api-idea-${VERSION}-signed.zip"
+          [ -f "$ASSET" ] || ASSET="build/distributions/laravel-api-idea-${VERSION}.zip"
+
+          if [ ! -f "$ASSET" ]; then
+            echo "No built archive at $ASSET"
+            exit 1
+          fi
+
+          cp "$ASSET" "laravel-api-idea-${VERSION}.zip"
+
+          # The release is usually already there, made by hand with a title an
+          # automaton would not come up with. If it is not, one is created from
+          # the CHANGELOG so the archive has somewhere to go.
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            python3 - <<'PY' > notes.md
+          import os, re, pathlib
+
+          version = os.environ['GITHUB_REF_NAME'].lstrip('v')
+          lines = pathlib.Path('CHANGELOG.md').read_text(encoding='utf-8').split('\n')
+          heads = [(i, line) for i, line in enumerate(lines) if line.startswith('## ')]
+
+          for index, (start, line) in enumerate(heads):
+              if re.match(r'^## \[?' + re.escape(version) + r'\]?( |$)', line):
+                  end = heads[index + 1][0] if index + 1 < len(heads) else len(lines)
+                  print('\n'.join(lines[start + 1:end]).strip())
+                  break
+          else:
+              raise SystemExit(f'CHANGELOG.md says nothing about {version}')
+          PY
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md
+          fi
+
+          gh release upload "$GITHUB_REF_NAME" "laravel-api-idea-${VERSION}.zip" --clobber
+
+      # Without this an installed plugin has no way to learn that a newer
+      # version exists: outside the Marketplace nothing tells it. The file is a
+      # custom plugin repository — a user adds its URL once, and updates arrive
+      # the same way Marketplace updates did.
+      - name: Update the plugin repository feed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          SINCE=$(grep -m1 'sinceBuild' build.gradle.kts | sed -E 's/.*"(.*)".*/\1/')
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/laravel-api-idea-${VERSION}.zip"
+
+          cat > updatePlugins.xml <<XML
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!--
+            A custom plugin repository, served straight from this branch.
+
+            Add it once in Settings | Plugins | ⚙ | Manage Plugin Repositories:
+            https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/updatePlugins.xml
+
+            Written by CI on every release. Editing it by hand only moves the
+            pointer away from what was actually published.
+          -->
+          <plugins>
+            <plugin id="dev.dskripchenko.laravel-api" url="${URL}" version="${VERSION}">
+              <idea-version since-build="${SINCE}"/>
+            </plugin>
+          </plugins>
+          XML
+
+          if git diff --quiet -- updatePlugins.xml; then
+            echo "The feed already points at ${VERSION}."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add updatePlugins.xml
+          git commit -m "chore: обновлён фид плагина — ${VERSION}"
+          git push origin main
