@@ -76,15 +76,30 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
 
-          ASSET="build/distributions/laravel-api-idea-${VERSION}-signed.zip"
-          [ -f "$ASSET" ] || ASSET="build/distributions/laravel-api-idea-${VERSION}.zip"
+          SIGNED="build/distributions/laravel-api-idea-${VERSION}-signed.zip"
+          PLAIN="build/distributions/laravel-api-idea-${VERSION}.zip"
 
-          if [ ! -f "$ASSET" ]; then
-            echo "No built archive at $ASSET"
+          if [ -f "$SIGNED" ]; then
+            ASSET="$SIGNED"
+            echo "Signed archive."
+          elif [ -f "$PLAIN" ]; then
+            ASSET="$PLAIN"
+            # Said out loud rather than fallen back into silently: the step is
+            # called "Build and sign", and a skipped signing task reads in the
+            # log exactly like a successful one.
+            echo "::warning::No signing key configured — publishing an UNSIGNED archive. The checksum below is what a downloader can verify."
+          else
+            echo "No built archive: neither $SIGNED nor $PLAIN"
             exit 1
           fi
 
           cp "$ASSET" "laravel-api-idea-${VERSION}.zip"
+
+          # A checksum is what an unsigned download can still be checked
+          # against, and it costs one line. Published beside the archive so the
+          # two travel together.
+          sha256sum "laravel-api-idea-${VERSION}.zip" > "laravel-api-idea-${VERSION}.zip.sha256"
+          cat "laravel-api-idea-${VERSION}.zip.sha256"
 
           # The release is usually already there, made by hand with a title an
           # automaton would not come up with. If it is not, one is created from
@@ -108,7 +123,9 @@ jobs:
             gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md
           fi
 
-          gh release upload "$GITHUB_REF_NAME" "laravel-api-idea-${VERSION}.zip" --clobber
+          gh release upload "$GITHUB_REF_NAME" \
+            "laravel-api-idea-${VERSION}.zip" \
+            "laravel-api-idea-${VERSION}.zip.sha256" --clobber
 
       # Without this an installed plugin has no way to learn that a newer
       # version exists: outside the Marketplace nothing tells it. The file is a

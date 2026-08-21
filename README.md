@@ -219,11 +219,17 @@ IDE distributions and three more on storing the cache they left behind. Its
 answer changes when JetBrains ships a platform release, not when this repository
 gets a commit.
 
-Signing is what a registry would otherwise vouch for, so outside one it matters
-more, not less: `PLUGIN_CERTIFICATE_CHAIN` / `PLUGIN_PRIVATE_KEY` /
-`PLUGIN_PRIVATE_KEY_PASSWORD` let a downloaded archive be proven to have left
-this machine untampered. Without them the signing task has nothing to do and an
-unsigned archive is published instead.
+**The archives are not signed today.** JetBrains Marketplace used to sign every
+upload itself, so no key was ever set up here, and outside it nothing does —
+`signPlugin` skips when `PLUGIN_CERTIFICATE_CHAIN` / `PLUGIN_PRIVATE_KEY` /
+`PLUGIN_PRIVATE_KEY_PASSWORD` are absent. Configure those three and the release
+signs itself with no further change.
+
+Until then each release carries a `.sha256` beside its archive, and the workflow
+says out loud in its log that what it published is unsigned. A checksum is not a
+signature — it proves the file was not altered in transit, not who built it —
+but it is what an unsigned download can be checked against, and silence would
+have been worse.
 
 The release notes come from `CHANGELOG.md` — the section matching the version
 being built. Tagging a version the changelog does not mention fails the build
