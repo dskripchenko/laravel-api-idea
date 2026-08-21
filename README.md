@@ -148,7 +148,8 @@ written by CI on each release, so it points at exactly what was published.
 [release](https://github.com/dskripchenko/laravel-api-idea/releases) carries
 `laravel-api-idea-<version>.zip`, and Settings | Plugins | ⚙ | *Install Plugin
 from Disk…* takes it. This is also how to go back a version — an update feed
-only ever offers the newest.
+only ever offers the newest. Every version that ever shipped is listed, with its
+archive, in [docs/versions.md](docs/versions.md).
 
 ## Which IDEs
 
@@ -221,6 +222,45 @@ unsigned archive is published instead.
 The release notes come from `CHANGELOG.md` — the section matching the version
 being built. Tagging a version the changelog does not mention fails the build
 rather than publishing an empty "what's new".
+
+### Compatibility ranges in the feed
+
+`updatePlugins.xml` currently carries one entry, because every version so far
+declares `since-build="251"` and no upper bound: one archive suits every IDE the
+plugin supports.
+
+That stops being true the day `sinceBuild` is raised — when a platform API the
+plugin needs stops existing in older IDEs, say. From then on the feed has to
+carry **one entry per compatibility range**, with the ranges disjoint:
+
+```xml
+<plugins>
+  <!-- The last version that worked on the older branch. -->
+  <plugin id="dev.dskripchenko.laravel-api" url="…/v1.4.2/laravel-api-idea-1.4.2.zip" version="1.4.2">
+    <idea-version since-build="251" until-build="253.*"/>
+  </plugin>
+
+  <!-- Everything from here on. -->
+  <plugin id="dev.dskripchenko.laravel-api" url="…/v2.0.0/laravel-api-idea-2.0.0.zip" version="2.0.0">
+    <idea-version since-build="261"/>
+  </plugin>
+</plugins>
+```
+
+The IDE reads the feed with its own build number in hand and keeps only what
+matches — `RepositoryHelper.loadPlugins(url, buildNumber, …)` — so a PhpStorm
+2025.3 sees 1.4.2 and a 2026.1 sees 2.0.0, each as an ordinary update. Neither
+is told the other exists.
+
+Two things this is **not** for. It is not a version history: the plugin manager
+shows one card per plugin id and has no version picker, so overlapping entries
+mean the IDE picks one and the rest are invisible. And it is not how a user goes
+back a version — that is an archive from [docs/versions.md](docs/versions.md)
+and *Install Plugin from Disk…*.
+
+When the split happens, the release workflow has to stop overwriting the whole
+file and start replacing only the entry whose range matches the version being
+released. Until then, one entry, rewritten each time.
 
 ## License
 

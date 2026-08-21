@@ -114,7 +114,7 @@ jobs:
       # version exists: outside the Marketplace nothing tells it. The file is a
       # custom plugin repository — a user adds its URL once, and updates arrive
       # the same way Marketplace updates did.
-      - name: Update the plugin repository feed
+      - name: Update the feed and the version table
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -140,13 +140,17 @@ jobs:
           </plugins>
           XML
 
-          if git diff --quiet -- updatePlugins.xml; then
-            echo "The feed already points at ${VERSION}."
+          # Rebuilt rather than appended: a release edited or deleted by
+          # hand should show up in the table too.
+          python3 scripts/versions.py
+
+          if git diff --quiet -- updatePlugins.xml docs/versions.md; then
+            echo "The feed and the table already describe ${VERSION}."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add updatePlugins.xml
-          git commit -m "chore: обновлён фид плагина — ${VERSION}"
+          git add updatePlugins.xml docs/versions.md
+          git commit -m "chore: фид и таблица версий — ${VERSION}"
           git push origin main
