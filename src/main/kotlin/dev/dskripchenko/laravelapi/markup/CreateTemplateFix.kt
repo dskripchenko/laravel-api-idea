@@ -5,7 +5,6 @@ import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
@@ -15,6 +14,7 @@ import com.jetbrains.php.lang.psi.elements.ArrayCreationExpression
 import com.jetbrains.php.lang.psi.elements.Method
 import com.jetbrains.php.lang.psi.elements.PhpClass
 import com.jetbrains.php.lang.psi.elements.PhpReturn
+import dev.dskripchenko.laravelapi.ui.ChoiceList
 
 /**
  * Writes a missing template into `getOpenApiTemplates()`.
@@ -58,9 +58,7 @@ class CreateTemplateFix(private val templateName: String) : LocalQuickFix {
     private fun chooseAndDeclare(project: Project, editor: Editor?, candidates: List<PhpClass>) {
         if (editor == null) return
 
-        JBPopupFactory.getInstance()
-            .createPopupChooserBuilder(candidates.map { it.fqn })
-            .setTitle("Declare '$templateName' in")
+        ChoiceList.of(candidates.map { it.fqn }, "Declare '$templateName' in")
             .setItemChosenCallback { chosen ->
                 val target = candidates.firstOrNull { it.fqn == chosen } ?: return@setItemChosenCallback
                 com.intellij.openapi.command.WriteCommandAction

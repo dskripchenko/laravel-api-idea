@@ -11,13 +11,13 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.util.concurrency.AppExecutorUtil
 import dev.dskripchenko.laravelapi.LaravelApiProject
 import dev.dskripchenko.laravelapi.lint.Artisan
 import dev.dskripchenko.laravelapi.routes.ApiVersionLookup
 import dev.dskripchenko.laravelapi.routes.EndpointAtCaret
 import dev.dskripchenko.laravelapi.routes.RouteMapLookup
+import dev.dskripchenko.laravelapi.ui.ChoiceList
 
 /**
  * Export the endpoint under the caret as a request a client tool can open.
@@ -98,18 +98,14 @@ class ExportEndpointAction : AnAction(), DumbAware {
 
         // One method routed by two versions is two endpoints, and exporting the
         // wrong one is a request that fails for reasons nobody can see.
-        JBPopupFactory.getInstance()
-            .createPopupChooserBuilder(options.map { it.label })
-            .setTitle("Which Endpoint")
+        ChoiceList.of(options.map { it.label }, "Which Endpoint")
             .setItemChosenCallback { chosen -> options.firstOrNull { it.label == chosen }?.let(then) }
             .createPopup()
             .showCenteredInCurrentWindow(project)
     }
 
     private fun chooseFormat(project: Project, endpoint: Named) {
-        JBPopupFactory.getInstance()
-            .createPopupChooserBuilder(ExportFormat.entries.map { it.label })
-            .setTitle("Export ${endpoint.endpoint} As")
+        ChoiceList.of(ExportFormat.entries.map { it.label }, "Export ${endpoint.endpoint} As")
             .setItemChosenCallback { chosen ->
                 ExportFormat.byLabel(chosen)?.let { export(project, endpoint, it) }
             }

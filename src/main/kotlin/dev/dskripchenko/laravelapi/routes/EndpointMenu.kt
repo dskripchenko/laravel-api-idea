@@ -6,10 +6,10 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.popup.JBPopup
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import dev.dskripchenko.laravelapi.export.EndpointExporter
 import dev.dskripchenko.laravelapi.export.ExportFormat
 import dev.dskripchenko.laravelapi.lint.Artisan
+import dev.dskripchenko.laravelapi.ui.ChoiceList
 
 /**
  * Everything that can be done with one endpoint, in one list.
@@ -83,9 +83,7 @@ object EndpointMenu {
             return
         }
 
-        val popup = JBPopupFactory.getInstance()
-            .createPopupChooserBuilder(items.map { it.label })
-            .setTitle(title)
+        val popup = ChoiceList.of(items.map { it.label }, title)
             .setItemChosenCallback { chosen ->
                 items.firstOrNull { it.label == chosen }?.run?.invoke()
             }

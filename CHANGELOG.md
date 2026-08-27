@@ -29,6 +29,18 @@ The thread running through all five: the package fails quietly, and so does its
 documentation. Every release here turns one silent disagreement into something
 visible while typing.
 
+## [1.0.1]
+
+### Changed
+
+- **The lists you pick from have room around the words.** The `API` menu, the
+  format chooser and the "declare this template in" prompt were built straight
+  from the platform's popup factory, which pads a row for a tree in a tool
+  window: one pixel above and below, two beside. On a six-line menu that put the
+  first letter against the border and the rows against each other — dense enough
+  to read as a rendering fault rather than as a layout. All three now come from
+  one place, and gain or lose their padding together.
+
 ## [1.0.0]
 
 Eleven releases of finding out what this plugin is for, and the answer settled:
