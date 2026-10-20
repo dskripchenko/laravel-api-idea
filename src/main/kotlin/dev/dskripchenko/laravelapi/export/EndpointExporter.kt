@@ -1,7 +1,7 @@
 package dev.dskripchenko.laravelapi.export
 
 import com.intellij.lang.Language
-import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ide.scratch.ScratchRootType
@@ -88,7 +88,7 @@ object EndpointExporter {
             .createScratchFile(project, name, language, content)
             ?: return null
 
-        FileEditorManager.getInstance(project).openFile(file, true)
+        OpenFileDescriptor(project, file).navigate(true)
 
         return file
     }
