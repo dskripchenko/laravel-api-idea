@@ -29,6 +29,16 @@ The thread running through all five: the package fails quietly, and so does its
 documentation. Every release here turns one silent disagreement into something
 visible while typing.
 
+## [Unreleased]
+
+### Fixed
+
+- **Opening an exported request no longer uses an API the IDE is retiring.**
+  The scratch file was opened through `FileEditorManager.openFile(file, true)`,
+  which IDE 2026.3 marks as deprecated; the weekly compatibility check failed on
+  it. The file now opens through `OpenFileDescriptor`, which behaves the same in
+  every supported version.
+
 ## [1.0.1]
 
 ### Changed
