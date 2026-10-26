@@ -14,10 +14,12 @@ import com.jetbrains.php.lang.psi.elements.ArrayCreationExpression
 import com.jetbrains.php.lang.psi.elements.Method
 import com.jetbrains.php.lang.psi.elements.PhpClass
 import com.jetbrains.php.lang.psi.elements.PhpReturn
+import dev.dskripchenko.laravelapi.navigation.ApiHooks
 import dev.dskripchenko.laravelapi.ui.ChoiceList
 
 /**
- * Writes a missing template into `getOpenApiTemplates()`.
+ * Writes a missing template into `getOpenApiTemplates()` — or into
+ * `getSchemaTemplates()`, whichever the project uses ([ApiHooks]).
  *
  * The name is already spelled in the docblock — the whole gesture is switching
  * files, finding the array, guessing the indentation and typing the name a
@@ -31,11 +33,10 @@ import dev.dskripchenko.laravelapi.ui.ChoiceList
 class CreateTemplateFix(private val templateName: String) : LocalQuickFix {
 
     private companion object {
-        const val BASE_API = "\\Dskripchenko\\LaravelApi\\Components\\BaseApi"
-        const val METHOD = "getOpenApiTemplates"
+        const val BASE_API = ApiHooks.BASE_API
     }
 
-    override fun getName(): String = "Declare template '$templateName' in $METHOD()"
+    override fun getName(): String = "Declare template '$templateName' in the Api class"
 
     override fun getFamilyName(): String = "Declare a missing response template"
 
@@ -71,7 +72,7 @@ class CreateTemplateFix(private val templateName: String) : LocalQuickFix {
     }
 
     private fun declareIn(project: Project, apiClass: PhpClass) {
-        val method = apiClass.findOwnMethodByName(METHOD)
+        val method = ApiHooks.TEMPLATES.ownMethod(apiClass)
 
         if (method == null) {
             writeWholeMethod(project, apiClass)
@@ -98,11 +99,12 @@ class CreateTemplateFix(private val templateName: String) : LocalQuickFix {
     private fun writeWholeMethod(project: Project, apiClass: PhpClass) {
         val document = PsiDocumentManager.getInstance(project).getDocument(apiClass.containingFile) ?: return
         val insertAt = apiClass.textRange.endOffset - 1
+        val methodName = ApiHooks.TEMPLATES.preferredName(project)
 
         document.insertString(
             insertAt,
             """
-            public static function $METHOD(): array
+            public static function $methodName(): array
             {
             return [
             '$templateName' => [],

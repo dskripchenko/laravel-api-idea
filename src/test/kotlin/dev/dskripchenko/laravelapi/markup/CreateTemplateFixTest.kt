@@ -121,6 +121,46 @@ class CreateTemplateFixTest : BasePlatformTestCase() {
         assertTrue("with the template in it", text.contains("'FirstTemplate' => []"))
     }
 
+    fun `test on laravel-api 6_1 it writes the neutral method when there is none`() {
+        myFixture.addFileToProject(
+            "vendor/dskripchenko/laravel-api/src/Components/BaseApi.php",
+            """
+            <?php
+            namespace Dskripchenko\LaravelApi\Components;
+            abstract class BaseApi
+            {
+                public static function getOpenApiTemplates(): array { return []; }
+                public static function getSchemaTemplates(): array { return static::getOpenApiTemplates(); }
+            }
+            """.trimIndent()
+        )
+        addApiClass("""    // nothing yet""")
+
+        applyFixOn("""     * @response 200 {FirstTemplate}""")
+
+        val text = apiFileText()
+        assertTrue("the neutral method appears", text.contains("function getSchemaTemplates"))
+        assertTrue("with the template in it", text.contains("'FirstTemplate' => []"))
+    }
+
+    fun `test it declares the template in getSchemaTemplates when the class has it`() {
+        addPackage()
+        addApiClass(
+            """
+                public static function getSchemaTemplates(): array
+                {
+                    return ['Existing' => []];
+                }
+            """.trimIndent()
+        )
+
+        applyFixOn("""     * @response 200 {Fresh}""")
+
+        val text = apiFileText()
+        assertTrue(text.contains("'Fresh' => []"))
+        assertFalse("no second method", text.contains("getOpenApiTemplates"))
+    }
+
     fun `test the name is taken verbatim from the docblock`() {
         addPackage()
         addApiClass(

@@ -19,7 +19,8 @@ import dev.dskripchenko.laravelapi.markup.DocTagGrammar.Parsed
  * Who refers to a response template.
  *
  * The question this answers is "can I delete this schema", and today it is
- * answered by a text search: the name in `getOpenApiTemplates()` and the name in
+ * answered by a text search: the name in `getOpenApiTemplates()` (or
+ * `getSchemaTemplates()`) and the name in
  * a docblock are two unrelated strings as far as the IDE is concerned.
  *
  * The search goes through the word index rather than over every PHP file — the
@@ -28,8 +29,6 @@ import dev.dskripchenko.laravelapi.markup.DocTagGrammar.Parsed
  * this template, because `UserResponse` also occurs in prose.
  */
 object TemplateUsages {
-
-    private const val TEMPLATES_METHOD = "getOpenApiTemplates"
 
     /** Every docblock tag naming [name]. */
     fun find(project: Project, name: String): List<PhpDocTag> {
@@ -77,7 +76,7 @@ object TemplateUsages {
      * Whether [element] is the key that declares a template — the only thing
      * worth asking this question about.
      *
-     * The top-level keys of `getOpenApiTemplates()` are template names;
+     * The top-level keys of the templates method are template names;
      * everything one level down is a field of a template and shares the shape,
      * so depth is what tells them apart.
      */
@@ -93,7 +92,7 @@ object TemplateUsages {
 
         val array = PsiTreeUtil.getParentOfType(hash, ArrayCreationExpression::class.java) ?: return false
         val method = PsiTreeUtil.getParentOfType(array, Method::class.java) ?: return false
-        if (method.name != TEMPLATES_METHOD) return false
+        if (method.name !in ApiHooks.TEMPLATES.names) return false
 
         // A nested array would put another ArrayCreationExpression between this
         // one and the method; the declaration is the outermost.

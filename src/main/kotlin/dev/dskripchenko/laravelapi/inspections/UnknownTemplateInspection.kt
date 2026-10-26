@@ -6,6 +6,7 @@ import com.intellij.openapi.util.TextRange
 import com.jetbrains.php.lang.documentation.phpdoc.psi.tags.PhpDocTag
 import dev.dskripchenko.laravelapi.markup.CreateTemplateFix
 import dev.dskripchenko.laravelapi.markup.DocTagGrammar.Parsed
+import dev.dskripchenko.laravelapi.navigation.ApiHooks
 import dev.dskripchenko.laravelapi.navigation.TemplateLookup
 
 /**
@@ -37,7 +38,7 @@ class UnknownTemplateInspection : DocTagInspection() {
 
         holder.registerProblem(
             tag,
-            "Template '$name' is not declared in getOpenApiTemplates() — " +
+            "Template '$name' is not declared in ${ApiHooks.TEMPLATES.preferredName(tag.project)}() — " +
                 "the generated spec will carry a \$ref pointing at nothing",
             ProblemHighlightType.GENERIC_ERROR,
             range(at),

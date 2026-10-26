@@ -29,6 +29,22 @@ The thread running through all five: the package fails quietly, and so does its
 documentation. Every release here turns one silent disagreement into something
 visible while typing.
 
+## [Unreleased]
+
+### Added
+
+- **The neutral hook names of laravel-api 6.1.** `getSchemaTemplates()` and
+  `getSecuritySchemes()` are read as well as `getOpenApiTemplates()` and
+  `getOpenApiSecurityDefinitions()`, the way the package reads them: the neutral
+  name where a class overrides it, the old one otherwise. Templates and schemes
+  declared under the new names are no longer reported as undeclared, navigation
+  and Find Usages reach them, and the inspections name the method the project
+  uses.
+- The quick fix writes a template into whichever of the two methods the class
+  has; when it has neither, it creates the one the project already uses — the
+  neutral name on laravel-api 6.1 if the project uses neither, the old one on
+  6.0, where `getSchemaTemplates()` would be read by nothing.
+
 ## [1.0.2]
 
 ### Fixed
