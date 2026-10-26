@@ -17,7 +17,7 @@ plugin catches it while typing.
 
 ## Status
 
-At 1.0.2, and everything the roadmap opened with is delivered. The public
+At 1.1.0, and everything the roadmap opened with is delivered. The public
 surface — the markup grammar, the inspections and their ids, the settings keys —
 is what it will be. What the plugin does today, grouped by when you meet it.
 
