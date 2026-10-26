@@ -2,17 +2,16 @@ package dev.dskripchenko.laravelapi.navigation
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.util.PsiTreeUtil
-import com.jetbrains.php.PhpIndex
 import com.jetbrains.php.lang.psi.elements.ArrayCreationExpression
 import com.jetbrains.php.lang.psi.elements.Method
-import com.jetbrains.php.lang.psi.elements.PhpClass
 import com.jetbrains.php.lang.psi.elements.PhpReturn
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 
 /**
  * Finds where a security scheme is declared.
  *
- * `@security AdminSession` names a key of `getOpenApiSecurityDefinitions()`.
+ * `@security AdminSession` names a key of `getOpenApiSecurityDefinitions()` —
+ * or of `getSecuritySchemes()`, its neutral name ([ApiHooks]).
  * When the key is absent the generator writes the name into the spec anyway,
  * under `security:`, referring to a scheme `components.securitySchemes` never
  * defines — a spec that validates and cannot be used to authenticate anything.
@@ -22,9 +21,6 @@ import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
  * mistake: one omission, multiplied by every action and every panel.
  */
 object SecurityLookup {
-
-    private const val BASE_API = "\\Dskripchenko\\LaravelApi\\Components\\BaseApi"
-    private const val DEFINITIONS_METHOD = "getOpenApiSecurityDefinitions"
 
     /** The string literals declaring [name], across every Api class. */
     fun findDeclarations(project: Project, name: String): List<StringLiteralExpression> =
@@ -46,19 +42,12 @@ object SecurityLookup {
     fun isInUse(project: Project): Boolean = declarations(project).isNotEmpty()
 
     private fun declarations(project: Project): List<StringLiteralExpression> =
-        apiClasses(project)
+        ApiHooks.apiClasses(project)
             .asSequence()
-            .mapNotNull { it.findMethodByName(DEFINITIONS_METHOD) }
+            .mapNotNull { ApiHooks.SECURITY.effectiveMethod(it) }
             .distinct()
             .flatMap { schemeKeys(it).asSequence() }
             .toList()
-
-    private fun apiClasses(project: Project): Collection<PhpClass> {
-        val found = mutableListOf<PhpClass>()
-        PhpIndex.getInstance(project).processAllSubclasses(BASE_API) { found += it; true }
-
-        return found
-    }
 
     /**
      * The top-level keys of the returned array: one per scheme. Everything a

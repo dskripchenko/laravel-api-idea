@@ -6,6 +6,7 @@ import com.intellij.codeInspection.options.OptPane
 import com.intellij.openapi.util.TextRange
 import com.jetbrains.php.lang.documentation.phpdoc.psi.tags.PhpDocTag
 import dev.dskripchenko.laravelapi.markup.DocTagGrammar.Parsed
+import dev.dskripchenko.laravelapi.navigation.ApiHooks
 import dev.dskripchenko.laravelapi.navigation.SecurityLookup
 
 /**
@@ -52,7 +53,7 @@ class UnknownSecuritySchemeInspection : DocTagInspection() {
 
         holder.registerProblem(
             tag,
-            "Security scheme '${parsed.scheme}' is not declared in getOpenApiSecurityDefinitions() — " +
+            "Security scheme '${parsed.scheme}' is not declared in ${ApiHooks.SECURITY.preferredName(project)}() — " +
                 "the spec will reference a scheme it never defines",
             ProblemHighlightType.GENERIC_ERROR,
             range(parsed.schemeRange),

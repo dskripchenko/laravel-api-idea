@@ -54,7 +54,7 @@
 
             <li><b>Marks dangling references</b> — a template or a security scheme
             nothing declares — and offers a quick fix that declares the template for
-            you, creating <code>getOpenApiTemplates()</code> when the class has none,
+            you, creating the templates method when the class has none,
             with the name taken verbatim from the docblock.</li>
 
             <li><b>Turns the silent 404 red</b>: an action pointing at a missing,

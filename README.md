@@ -39,8 +39,8 @@ is what it will be. What the plugin does today, grouped by when you meet it.
   about rules assembled at runtime — see the note below.
 - **Templates nobody declared** are underlined where they are written, instead
   of surfacing later as a `$ref` into nothing in a published spec, with a quick
-  fix that writes `'Name' => []` into `getOpenApiTemplates()` — creating the
-  method too when there is none — with the name taken verbatim from the
+  fix that writes `'Name' => []` into `getOpenApiTemplates()` (or
+  `getSchemaTemplates()`) — creating the method too when there is none — with the name taken verbatim from the
   docblock. Retyping it by hand in another file is where a second, slightly
   different spelling comes from, and that spelling reads as "declared" to a
   person and "missing" to the generator.
@@ -50,7 +50,8 @@ is what it will be. What the plugin does today, grouped by when you meet it.
   nonsense". A method that exists but is not public, or is static, is reported
   the same way: `app()->call()` cannot reach it either. Alt+Enter writes the
   method, placed and shaped like the ones already in the class.
-- **`@security` checked** against `getOpenApiSecurityDefinitions()`. Silent while
+- **`@security` checked** against `getOpenApiSecurityDefinitions()` (or
+  `getSecuritySchemes()`). Silent while
   a project declares no schemes at all: that application has evidently not taken
   the feature up, and painting every tag red would teach people to look past the
   plugin rather than at it.
@@ -58,10 +59,16 @@ is what it will be. What the plugin does today, grouped by when you meet it.
   codes — and, deliberately, of nothing at all once the caret has moved past the
   variable into the description.
 
+Both names of the hooks are understood. laravel-api 6.1 calls them
+`getSchemaTemplates()` and `getSecuritySchemes()` as well, and reads those first;
+the plugin does the same — the neutral name counts where a class overrides it,
+the old one otherwise — and a new method is written under whichever name the
+project already uses (the neutral one on 6.1 when it uses neither).
+
 **Getting around**
 
 - **Navigation**: Ctrl+Click on `{UserResponse}`, `@OrderRequest` or
-  `[buildInputs]` goes to the key in `getOpenApiTemplates()` or to the
+  `[buildInputs]` goes to the key in the templates method or to the
   controller's own method.
 - **Find Usages on a template declaration** lists every docblock naming it, with
   a gutter arrow from the declaration to them. A template read only by the
