@@ -11,6 +11,7 @@ newest, so a downgrade has to be explicit.
 
 | Version | Date | IDEs | What it brought | |
 |---|---|---|---|---|
+| **1.1.0** | 2026-10-26 | 2025.1+ | the neutral hook names of laravel-api 6.1 | [zip](https://github.com/dskripchenko/laravel-api-idea/releases/download/v1.1.0/laravel-api-idea-1.1.0.zip) · [notes](https://github.com/dskripchenko/laravel-api-idea/releases/tag/v1.1.0) |
 | **1.0.2** | 2026-10-20 | 2025.1+ | exported requests open without retired API | [zip](https://github.com/dskripchenko/laravel-api-idea/releases/download/v1.0.2/laravel-api-idea-1.0.2.zip) · [notes](https://github.com/dskripchenko/laravel-api-idea/releases/tag/v1.0.2) |
 | **1.0.1** | 2026-08-27 | 2025.1+ | room around the words in every list | [zip](https://github.com/dskripchenko/laravel-api-idea/releases/download/v1.0.1/laravel-api-idea-1.0.1.zip) · [notes](https://github.com/dskripchenko/laravel-api-idea/releases/tag/v1.0.1) |
 | **1.0.0** | 2026-08-21 | 2025.1+ | one API line, everything the endpoint offers | [zip](https://github.com/dskripchenko/laravel-api-idea/releases/download/v1.0.0/laravel-api-idea-1.0.0.zip) · [notes](https://github.com/dskripchenko/laravel-api-idea/releases/tag/v1.0.0) |

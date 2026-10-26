@@ -13,7 +13,7 @@
   entry carrying only an id loads without error and stays invisible.
 -->
 <plugins>
-  <plugin id="dev.dskripchenko.laravel-api" url="https://github.com/dskripchenko/laravel-api-idea/releases/download/v1.0.2/laravel-api-idea-1.0.2.zip" version="1.0.2">
+  <plugin id="dev.dskripchenko.laravel-api" url="https://github.com/dskripchenko/laravel-api-idea/releases/download/v1.1.0/laravel-api-idea-1.1.0.zip" version="1.1.0">
     <name>Laravel API</name>
     <description>IDE support for dskripchenko/laravel-api — the docblock markup its OpenAPI generator reads, and the route map its getMethods() declares.</description>
     <vendor email="denskrp90@gmail.com" url="https://github.com/dskripchenko">Denis Skripchenko</vendor>
