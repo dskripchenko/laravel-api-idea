@@ -3,10 +3,7 @@ package dev.dskripchenko.laravelapi.navigation
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
-import com.jetbrains.php.lang.psi.elements.ArrayCreationExpression
 import com.jetbrains.php.lang.psi.elements.ArrayHashElement
-import com.jetbrains.php.lang.psi.elements.Method
-import com.jetbrains.php.lang.psi.elements.PhpReturn
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 
 /**
@@ -38,7 +35,7 @@ object TemplateLookup {
         ApiHooks.apiClasses(project)
             .asSequence()
             .mapNotNull { ApiHooks.TEMPLATES.effectiveMethod(it) }
-            .flatMap { templateKeys(it).asSequence() }
+            .flatMap { ApiHooks.declaredKeys(it).asSequence() }
             .filter { it.contents == name }
             .toList()
 
@@ -47,24 +44,9 @@ object TemplateLookup {
         ApiHooks.apiClasses(project)
             .asSequence()
             .mapNotNull { ApiHooks.TEMPLATES.effectiveMethod(it) }
-            .flatMap { templateKeys(it).asSequence() }
+            .flatMap { ApiHooks.declaredKeys(it).asSequence() }
             .map { it.contents }
             .toSet() + BUILT_IN
-
-    /**
-     * The top-level keys of the array the method returns.
-     *
-     * Only the outermost array: its keys are template names, while everything
-     * one level down is a field of a template and shares the shape.
-     */
-    private fun templateKeys(method: Method): List<StringLiteralExpression> {
-        val returned = PsiTreeUtil.findChildrenOfType(method, PhpReturn::class.java)
-            .firstNotNullOfOrNull { it.argument as? ArrayCreationExpression }
-            ?: return emptyList()
-
-        return returned.hashElements
-            .mapNotNull { it.key as? StringLiteralExpression }
-    }
 
     /** The templates array element a caret sits in, if any. */
     fun hashElementOf(element: PsiElement): ArrayHashElement? =
