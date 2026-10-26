@@ -29,7 +29,7 @@ The thread running through all five: the package fails quietly, and so does its
 documentation. Every release here turns one silent disagreement into something
 visible while typing.
 
-## [Unreleased]
+## [1.1.1]
 
 ### Fixed
 
