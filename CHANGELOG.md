@@ -29,6 +29,23 @@ The thread running through all five: the package fails quietly, and so does its
 documentation. Every release here turns one silent disagreement into something
 visible while typing.
 
+## [Unreleased]
+
+### Fixed
+
+- **Declaring a template in a version that inherits its templates no longer
+  hides them.** With `V2 extends V1` and the templates in V1, the quick fix gave
+  V2 a method of its own returning only the new template — and everything V1
+  declares vanished from V2's spec. It now writes an override that adds to the
+  parent's: `return array_merge(parent::getOpenApiTemplates(), ['Name' => []]);`,
+  under the name the parent uses.
+- **Templates and security schemes added with `array_merge()` are seen.**
+  `return array_merge(parent::getSchemaTemplates(), [...])` — how a later
+  version adds to an earlier one — declared templates the plugin did not know,
+  so their uses were reported as undeclared. The literals passed to
+  `array_merge()` / `array_replace()` are read now, and the quick fix writes into
+  the version's own one.
+
 ## [1.1.0]
 
 ### Added

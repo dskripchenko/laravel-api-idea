@@ -1,9 +1,14 @@
 package dev.dskripchenko.laravelapi.navigation
 
 import com.intellij.openapi.project.Project
+import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.php.PhpIndex
+import com.jetbrains.php.lang.psi.elements.ArrayCreationExpression
+import com.jetbrains.php.lang.psi.elements.FunctionReference
 import com.jetbrains.php.lang.psi.elements.Method
 import com.jetbrains.php.lang.psi.elements.PhpClass
+import com.jetbrains.php.lang.psi.elements.PhpReturn
+import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 
 /**
  * The static methods on an Api class that declare templates and security
@@ -64,6 +69,39 @@ object ApiHooks {
             return if (packageKnowsNeutral) neutral else legacy
         }
     }
+
+    /** The functions a version adds to what it inherits with: `array_merge(parent::…(), [...])`. */
+    private val MERGING_FUNCTIONS = setOf("array_merge", "array_replace")
+
+    /**
+     * The array literals a hook method returns, in order.
+     *
+     * `return [...]`, or the literals passed to `array_merge()` /
+     * `array_replace()` — how a later version adds to what an earlier one
+     * declares: `return array_merge(parent::getSchemaTemplates(), [...])`. The
+     * call to the parent contributes nothing here: those declarations are found
+     * on the parent itself.
+     */
+    fun returnedArrays(method: Method): List<ArrayCreationExpression> {
+        for (statement in PsiTreeUtil.findChildrenOfType(method, PhpReturn::class.java)) {
+            when (val returned = statement.argument) {
+                is ArrayCreationExpression -> return listOf(returned)
+                is FunctionReference -> if (returned.name?.lowercase() in MERGING_FUNCTIONS) {
+                    val arrays = returned.parameters.filterIsInstance<ArrayCreationExpression>()
+                    if (arrays.isNotEmpty()) return arrays
+                }
+            }
+        }
+
+        return emptyList()
+    }
+
+    /**
+     * The top-level keys of what a hook method returns: one per template or
+     * scheme. Everything a level down describes the template or the scheme.
+     */
+    fun declaredKeys(method: Method): List<StringLiteralExpression> =
+        returnedArrays(method).flatMap { array -> array.hashElements.mapNotNull { it.key as? StringLiteralExpression } }
 
     /** Every class extending BaseApi. */
     fun apiClasses(project: Project): Collection<PhpClass> {

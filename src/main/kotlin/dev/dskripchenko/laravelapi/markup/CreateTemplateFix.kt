@@ -6,14 +6,11 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiFile
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.php.PhpIndex
-import com.jetbrains.php.lang.psi.elements.ArrayCreationExpression
 import com.jetbrains.php.lang.psi.elements.Method
 import com.jetbrains.php.lang.psi.elements.PhpClass
-import com.jetbrains.php.lang.psi.elements.PhpReturn
 import dev.dskripchenko.laravelapi.navigation.ApiHooks
 import dev.dskripchenko.laravelapi.ui.ChoiceList
 
@@ -71,16 +68,26 @@ class CreateTemplateFix(private val templateName: String) : LocalQuickFix {
             .showInBestPositionFor(editor)
     }
 
-    private fun declareIn(project: Project, apiClass: PhpClass) {
+    internal fun declareIn(project: Project, apiClass: PhpClass) {
         val method = ApiHooks.TEMPLATES.ownMethod(apiClass)
 
         if (method == null) {
-            writeWholeMethod(project, apiClass)
+            // A version inheriting its templates must keep them: a method of
+            // its own returning only the new one would hide every template the
+            // parent declares — from this version's spec, without a word.
+            val inherited = ApiHooks.TEMPLATES.effectiveMethod(apiClass)
+            if (inherited != null && inherited.containingClass?.fqn != BASE_API) {
+                writeMergingOverride(project, apiClass, inherited.name)
+            } else {
+                writeWholeMethod(project, apiClass)
+            }
 
             return
         }
 
-        val array = returnedArray(method) ?: return
+        // The last literal: with `array_merge(parent::…(), [...])` that is the
+        // version's own additions.
+        val array = ApiHooks.returnedArrays(method).lastOrNull() ?: return
         val document = PsiDocumentManager.getInstance(project).getDocument(apiClass.containingFile) ?: return
 
         // Right after the opening bracket: the position exists whether the
@@ -117,6 +124,27 @@ class CreateTemplateFix(private val templateName: String) : LocalQuickFix {
         reformat(project, apiClass, insertAt)
     }
 
+    /** A method adding to what the parent declares under [methodName], instead of replacing it. */
+    private fun writeMergingOverride(project: Project, apiClass: PhpClass, methodName: String) {
+        val document = PsiDocumentManager.getInstance(project).getDocument(apiClass.containingFile) ?: return
+        val insertAt = apiClass.textRange.endOffset - 1
+
+        document.insertString(
+            insertAt,
+            """
+            public static function $methodName(): array
+            {
+            return array_merge(parent::$methodName(), [
+            '$templateName' => [],
+            ]);
+            }
+            """.trimIndent() + "\n"
+        )
+
+        PsiDocumentManager.getInstance(project).commitDocument(document)
+        reformat(project, apiClass, insertAt)
+    }
+
     private fun reformat(project: Project, apiClass: PhpClass, around: Int) {
         val file = apiClass.containingFile
         val element = file.findElementAt(around) ?: return
@@ -126,10 +154,6 @@ class CreateTemplateFix(private val templateName: String) : LocalQuickFix {
 
         CodeStyleManager.getInstance(project).reformat(block)
     }
-
-    private fun returnedArray(method: Method): ArrayCreationExpression? =
-        PsiTreeUtil.findChildrenOfType(method, PhpReturn::class.java)
-            .firstNotNullOfOrNull { it.argument as? ArrayCreationExpression }
 
     private fun apiClasses(project: Project): List<PhpClass> {
         val found = mutableListOf<PhpClass>()

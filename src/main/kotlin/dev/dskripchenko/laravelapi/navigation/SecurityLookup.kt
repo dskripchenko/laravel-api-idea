@@ -1,10 +1,6 @@
 package dev.dskripchenko.laravelapi.navigation
 
 import com.intellij.openapi.project.Project
-import com.intellij.psi.util.PsiTreeUtil
-import com.jetbrains.php.lang.psi.elements.ArrayCreationExpression
-import com.jetbrains.php.lang.psi.elements.Method
-import com.jetbrains.php.lang.psi.elements.PhpReturn
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression
 
 /**
@@ -46,18 +42,6 @@ object SecurityLookup {
             .asSequence()
             .mapNotNull { ApiHooks.SECURITY.effectiveMethod(it) }
             .distinct()
-            .flatMap { schemeKeys(it).asSequence() }
+            .flatMap { ApiHooks.declaredKeys(it).asSequence() }
             .toList()
-
-    /**
-     * The top-level keys of the returned array: one per scheme. Everything a
-     * level down describes the scheme itself — `type`, `name`, `in`.
-     */
-    private fun schemeKeys(method: Method): List<StringLiteralExpression> {
-        val returned = PsiTreeUtil.findChildrenOfType(method, PhpReturn::class.java)
-            .firstNotNullOfOrNull { it.argument as? ArrayCreationExpression }
-            ?: return emptyList()
-
-        return returned.hashElements.mapNotNull { it.key as? StringLiteralExpression }
-    }
 }

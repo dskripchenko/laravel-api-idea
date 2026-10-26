@@ -40,7 +40,9 @@ is what it will be. What the plugin does today, grouped by when you meet it.
 - **Templates nobody declared** are underlined where they are written, instead
   of surfacing later as a `$ref` into nothing in a published spec, with a quick
   fix that writes `'Name' => []` into `getOpenApiTemplates()` (or
-  `getSchemaTemplates()`) — creating the method too when there is none — with the name taken verbatim from the
+  `getSchemaTemplates()`) — creating the method too when there is none, and in
+  a version that inherits its templates an override adding to the parent's
+  (`array_merge(parent::…(), [...])`) rather than one hiding them — with the name taken verbatim from the
   docblock. Retyping it by hand in another file is where a second, slightly
   different spelling comes from, and that spelling reads as "declared" to a
   person and "missing" to the generator.
